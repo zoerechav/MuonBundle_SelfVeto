@@ -1,0 +1,14 @@
+processname = $(run).22015_step_1_snowstorm_propagation
+executable = $(script_file)
+getenv         = false
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+output = /home/vbasu/scripts/simulation_scripts/[A[D/22015_step_1_snowstorm_propagation/logs/$(processname).out
+error = /home/vbasu/scripts/simulation_scripts/[A[D/22015_step_1_snowstorm_propagation/logs/$(processname).err
+log = /home/vbasu/scripts/simulation_scripts/[A[D/22015_step_1_snowstorm_propagation/logs/$(processname).log
+notification   = never
+universe       = vanilla
+request_gpus = 1
+request_memory = 5gb
+request_cpus = 1
+queue

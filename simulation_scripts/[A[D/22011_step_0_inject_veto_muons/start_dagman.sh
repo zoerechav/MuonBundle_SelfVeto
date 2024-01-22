@@ -1,0 +1,1 @@
+condor_submit_dag -config /home/vbasu/scripts/simulation_scripts/[A[D/22011_step_0_inject_veto_muons/dagman.config /home/vbasu/scripts/simulation_scripts/[A[D/22011_step_0_inject_veto_muons/dagman.options
