@@ -1,4 +1,0 @@
-JOB Corsika_020904_reader /home/zrechav/scripts/air_shower_reader/AirShowerReader_NPX.sub
-VARS Corsika_020904_reader infile="/data/sim/IceCube/2020/filtered/level2/CORSIKA-in-ice/20904/00000-00999/*.i3.zst" 
-outfile="/home/zrechav/test/AirShowerReader" gcd="/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz" filenum="1000" grid="0"
-Retry Corsika_020904_reader 2
