@@ -1,0 +1,1 @@
+condor_submit_dag -config /home/vbasu/scripts/simulation_scripts/[A[D/22015_step_1_snowstorm_propagation/dagman.config /home/vbasu/scripts/simulation_scripts/[A[D/22015_step_1_snowstorm_propagation/dagman.options

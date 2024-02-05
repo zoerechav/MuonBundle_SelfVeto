@@ -1,0 +1,12 @@
+processname = $(run).22012_step_0_inject_veto_muons
+executable = $(script_file)
+getenv         = false
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+output = /home/vbasu/scripts/simulation_scripts/python simulation_scripts.py veto_muons_NuGen_22013.yaml -d /data/user/vbasu/simulation_scripts/ --dagman  --run_stop 748 -s 0/22012_step_0_inject_veto_muons/logs/$(processname).out
+error = /home/vbasu/scripts/simulation_scripts/python simulation_scripts.py veto_muons_NuGen_22013.yaml -d /data/user/vbasu/simulation_scripts/ --dagman  --run_stop 748 -s 0/22012_step_0_inject_veto_muons/logs/$(processname).err
+log = /home/vbasu/scripts/simulation_scripts/python simulation_scripts.py veto_muons_NuGen_22013.yaml -d /data/user/vbasu/simulation_scripts/ --dagman  --run_stop 748 -s 0/22012_step_0_inject_veto_muons/logs/$(processname).log
+notification   = never
+universe       = vanilla
+request_memory = 2gb
+queue

@@ -1,0 +1,182 @@
+ApplyBaseSimulationBias: true
+BaseSimulationBiasSettings:
+  bias_function: DowngoingFirstPrimary
+  bias_function_kwargs:
+    cos_zenith_sigmoid_bias: 0.05
+    cos_zenith_sigmoid_scale: 0.003
+  keep_all_events: false
+  lower_probability_bound: 1.0e-16
+  verbose: false
+DOMOversizeFactor: 5.0
+ExtraArgumentsToI3CLSimClientModule:
+  ClosestDOMDistanceCutoff: 500.0
+L1_2012_dom_simulator: false
+L1_2012_qify: false
+L1_2012_retrigger: false
+L1_keep_untriggered: false
+L1_min_bias_prescale: null
+L1_pass2_run_gfu: true
+MCTreeName: CombinedMuonVetoI3MCTree
+NumEventsPerModel: 100
+OnlineL2_keep_all_L2: true
+OnlineL2_keep_time_residuals: false
+SummaryFile: null
+UseGPUs: true
+UseI3PropagatorService: false
+additional_GenerateNeutrinos_settings:
+  AutoExtendMuonVolume: true
+  CrossSections: csms_differential_v1.0
+  CrossSectionsPath: null
+  CylinderParams:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  Flavor: ''
+  InjectionMode: Surface
+  NuTypes:
+  - NuMu
+  - NuMuBar
+  PrimaryTypeRatio:
+  - 1
+  - 1
+  SimMode: Full
+  UseDifferentialXsection: true
+  VTXGenMode: NuGen
+  ZenithSamplingMode: ANGEMU
+azimuth_max: 360.0
+azimuth_min: 0.0
+chain_name: atmospheric_neutrinos
+dagman_max_jobs: 5000
+dagman_scan_interval: 1
+dagman_submit_delay: 0
+dagman_submits_interval: 500
+data_folder: /home/vbasu/scripts/simulation_scripts/dagfiles
+dataset_folder: /home/vbasu/scripts/simulation_scripts/dagfiles/22010
+dataset_number: 22010
+default_config: /home/vbasu/scripts/simulation_scripts/configs/default_nugen_snowstorm.yaml
+det_add_beacon_launches: true
+det_convert_to_linear_tree: true
+det_dom_eff_resmapling_generated_efficiency: 0.0
+det_dom_eff_resmapling_sample_efficiency: 0.0
+det_filter_trigger: true
+det_is_genie_simulation: false
+det_is_icetop_simulation: false
+det_keep_all_upto: -1
+det_keep_mc_hits: false
+det_keep_mc_pulses: false
+det_keep_propagated_mc_tree: true
+det_low_mem: false
+det_pass2_keep_all_upto: -1
+det_remove_keys_from_m_frame:
+- AngularAcceptance
+- MediumProperties
+- WavelengthAcceptance
+- WavelengthGenerationBias
+det_skip_noise_generation: false
+distance_splits: null
+e_max: 10000000.0
+e_min: 100
+event_import_settings:
+  folder_offset: 0
+  folder_pattern: '{folder_num_pre_offset:04d}000-{folder_num_pre_offset:04d}999'
+  input_file_glob_list:
+  - ' /data/user/vbasu/CONDOR_output/SnowStormNuGen/L5/L5_NewIce*{dataset_number}*.i3.zst'
+  keys_to_import:
+  - I3MCWeightDict
+  - MMCTrackList
+  mctree_name: I3MCTree
+  rename_dict: {}
+gamma: 2.0
+gcd: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz
+gcd_pass2: /cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz
+generator: nugen
+infile_pattern: /home/vbasu/scripts/simulation_scripts/dagfiles/22010/None/{run_folder}/Level0.-1_nugen_IC86.2012_pass2.022010.{run_number:6d}.i3.bz2
+input_folder: /home/vbasu/scripts/simulation_scripts/dagfiles/22010/None
+job_template: /home/vbasu/scripts/simulation_scripts/job_templates/py3-v4.1.0.sh
+keep_crashed_files: 0
+muon_propagation_config: {}
+n_events_per_run: 10000
+n_runs: 100000
+neutrino_flavor: NuMu
+outfile_pattern: /data/user/vbasu/simulation_scripts/{run_folder}/Level0.0_nugen_IC86.2012_pass2.022010.{run_number:6d}.i3.bz2
+output_folder: /home/vbasu/scripts/simulation_scripts/dagfiles/22010/step_0_inject_veto_muons
+output_pattern: '{run_folder}/Level0.{step}_nugen_IC86.2012_pass2.{dataset_number:6d}.{run_number}.i3.bz2'
+oversize_factors: null
+previous_step: -1
+previous_step_name: null
+processing_folder: /home/vbasu/scripts/simulation_scripts/dagfiles/22010/processing/step_0_inject_veto_muons
+random_service_use_gslrng: true
+resources:
+  cpus:
+    1: 1
+  gpus:
+    1: 1
+  memory:
+    0: 2gb
+    1: 5gb
+    2: 5gb
+    3: 3gb
+    4: 3gb
+    5: 5gb
+  walltime: null
+run_folder: '{run_folder}'
+run_number: '{run_number:6d}'
+scratchfile_pattern: Level0.0_nugen_IC86.2012_pass2.022010.{run_number:6d}.i3.bz2
+script_folder: /home/vbasu/scripts/simulation_scripts
+script_name: '{step_name}{name_addition}_{run_number}.sh'
+seed: 4815
+snowstorm_config:
+  HoleIceParameterization: $I3_BUILD/ice-models/resources/models/angsens/as.flasher_p1_0.30_p2_-1
+  IceModelLocation: $I3_BUILD/ice-models/resources/models/spice_3.2.1
+  Perturbations:
+    Absorption:
+      type: uniform
+      uniform:
+        limits:
+        - - 0.9
+          - 1.1
+    AnisotropyScale:
+      type: uniform
+      uniform:
+        limits:
+        - - 0.0
+          - 2.0
+    DOMEfficiency:
+      type: uniform
+      uniform:
+        limits:
+        - - 0.9
+          - 1.1
+    HoleIceForward_Unified:
+      type: uniform
+      uniform:
+        limits:
+        - - -1.0
+          - 1.0
+        - - -0.2
+          - 0.2
+    IceWavePlusModes:
+      apply: false
+      type: default
+    Scattering:
+      type: uniform
+      uniform:
+        limits:
+        - - 0.9
+          - 1.1
+step: 0
+step_name: step_0_inject_veto_muons
+threshold_doms: null
+veto_muon_injection_config:
+  n_frames_per_neutrino: 10
+  sampling_settings:
+    gamma: 1.5
+    method: power_law
+    range:
+    - 10
+    - 1000000.0
+yaml_copy: /home/vbasu/scripts/simulation_scripts/dagfiles/22010/processing/step_0_inject_veto_muons/veto_muons__NuGen_21217.yaml
+zenith_max: 180.0
+zenith_min: 0.0
