@@ -1,0 +1,3 @@
+NOTES: Corsika 20904 small sample table creation (precursor for new Corsika dataset)
+
+In the making of correlation tables, only if statistics are available were splined histograms also made. The decision was made to not spline 3D and 4D histograms because many linearly splines were statistically unreliable or impossible to calculate -- although the code is available to use if more statistics are made available in the future.
