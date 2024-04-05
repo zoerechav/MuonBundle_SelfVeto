@@ -90,9 +90,9 @@ for flavour in flavours:
                 if np.sum(ADmask)>0:
                     print('I AM IN HERE')
                     Hist2D,xedges,yedges = np.histogram2d(Energy_Shower_Neutrino[ADmask], Muon_Energy_L1[ADmask], bins = [E_nu_bins,E_mu_bins], weights = GaisserH4a_weight[ADmask])
-
-                    
-                    Hist2D= Hist2D/np.sum(Hist2D)
+                    Hist2D = np.nan_to_num(Hist2D)
+                    ##LEAVE HISTOGRAM UNNORMALIZED, WILL BE NORMALIZED LATER
+                    #Hist2D= Hist2D/np.sum(Hist2D)
                     filename = config['single_hists_base'] + flavour + '_Single_Zen_' + str(np.round(angle,2)) + '_Depth_' + str(np.round(depth,2)) + '.npy'
                     np.save(filename, Hist2D)
                 else:

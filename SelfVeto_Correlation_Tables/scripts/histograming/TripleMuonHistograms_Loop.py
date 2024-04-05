@@ -102,6 +102,15 @@ for flavour in flavours:
                     stackarray = np.stack((Muon_Energy_L1[ADmask], Muon_Energy_L2[ADmask], Muon_Energy_L3[ADmask], Energy_Shower_Neutrino[ADmask]),axis=1)
                     
                     Hist4D,edges=np.histogramdd(stackarray,bins=(E_mu_bins,E_mu_bins,E_mu_bins,E_nu_bins),weights=GaisserH4a_weight[ADmask])
+                    ##new line for correct normalization
+                    
+                    ##Normalize the histogram
+#                     Norm_Hist4D = np.empty((len(E_mu_bins)-1,len(E_mu_bins)-1,len(E_mu_bins)-1,len(E_nu_bins)-1))
+#                     for test_index in range(len(E_nu_bins)-1):
+#                         norm_piece = Hist4D[:,:,:,test_index]
+#                         Norm_Hist4D[:,:,:,test_index] = norm_piece/np.sum(norm_piece)                
+#                         #Hist4D[:,:,:,energy_index].T/np.sum(Hist4D[:,:,:,energy_index])
+#                     Norm_Hist4D = np.nan_to_num(Norm_Hist4D)
                     filename = config['triple_hists_base'] + flavour + '_Triple_Zen_' + str(np.around(angle,2)) + '_Depth_' + str(np.around(depth,2)) + '.npy'     
 
                     np.save(filename, Hist4D)

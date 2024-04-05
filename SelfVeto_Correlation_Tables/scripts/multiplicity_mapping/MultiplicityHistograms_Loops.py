@@ -86,21 +86,23 @@ angles= eval(config['angles'])
 depths = eval(config['depths'])
 
 
-# for flavour in flavours:
-#     flav_mask = np.load(config['flavour_masks_base_path']+str(flavour)+'.npy',mmap_mode='r',allow_pickle=True)
-for angle in angles:
-    angle_mask = np.load(config['angle_masks_base_path']+str(np.around(angle,2))+'.npy',mmap_mode='r',allow_pickle=True)
-    for depth in depths:
-        depth_mask = np.load(config['depth_masks_base_path']+str(np.around(depth,2))+'.npy',mmap_mode='r',allow_pickle=True)
+for flavour in flavours:
+    flav_mask = np.load(config['flavour_masks_base_path']+str(flavour)+'.npy',mmap_mode='r',allow_pickle=True)
+    for angle in angles:
+        angle_mask = np.load(config['angle_masks_base_path']+str(np.around(angle,2))+'.npy',mmap_mode='r',allow_pickle=True)
+        for depth in depths:
+            depth_mask = np.load(config['depth_masks_base_path']+str(np.around(depth,2))+'.npy',mmap_mode='r',allow_pickle=True)
 
-        ADmask=np.logical_and.reduce((angle_mask,depth_mask))
+            ADmask=np.logical_and.reduce((angle_mask,depth_mask,flav_mask))
 
-        if np.sum(ADmask)>0:
-            stackarray=np.stack((MuonMultiplicity[ADmask],Energy_Shower_Neutrino[ADmask]),axis=1)
-            Hist2D,edges=np.histogramdd(stackarray,bins=(mult_bins,E_nu_bins),weights=GaisserH4a_weight[ADmask])
-            filename = config['multi_base'] + 'Mult_Zen_' + str(np.around(angle,2)) + '_Depth_' + str(np.around(depth,2))+'.npy'
+            if np.sum(ADmask)>0:
+                stackarray=np.stack((MuonMultiplicity[ADmask],Energy_Shower_Neutrino[ADmask]),axis=1)
+                Hist2D,edges=np.histogramdd(stackarray,bins=(mult_bins,E_nu_bins),weights=GaisserH4a_weight[ADmask])
+                #Hist2D = Hist2D /np.sum(Hist2D)
+                Hist2D = np.nan_to_num(Hist2D)
+                filename = config['multi_base'] +flavour + '_Mult_Zen_' + str(np.around(angle,2)) + '_Depth_' + str(np.around(depth,2))+'.npy'
 
-            print('Zen_'+str(angle)+'_Depth_'+str(depth)+' '+str(np.sum(Hist2D)))
-            np.save(filename, Hist2D)
-        else:
-            print('Empty array')
+                print('Zen_'+str(angle)+'_Depth_'+str(depth)+' '+str(np.sum(Hist2D)))
+                np.save(filename, Hist2D)
+            else:
+                print('Empty array')

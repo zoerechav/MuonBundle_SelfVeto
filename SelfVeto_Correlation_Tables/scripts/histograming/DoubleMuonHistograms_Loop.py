@@ -103,7 +103,7 @@ for flavour in flavours:
                     
                     Hist3D,edges = np.histogramdd(stackarray,bins =(E_mu_bins,E_mu_bins,E_nu_bins), weights = GaisserH4a_weight[ADmask])
 
-                    
+                    Hist3D = np.nan_to_num(Hist3D)
                     filename = config['double_hists_base'] + flavour + '_Double_Zen_' + str(np.around(angle,2)) + '_Depth_' + str(np.around(depth,2)) + '.npy'   
                     np.save(filename, Hist3D)
                     print('did you save me')

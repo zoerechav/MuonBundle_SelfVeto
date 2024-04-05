@@ -10,6 +10,7 @@ import matplotlib as mpl
 import argparse
 import os
 import yaml
+import sys
  
 parser = argparse.ArgumentParser()
 
@@ -28,39 +29,77 @@ gridpts_nu = eval(config['gridpts_nu'])
 
 print(gridpts_mu)
 
-
-
-def Make_1D_Spline(  Hist2D_str,
+def Make_1D_Spline(HistND_str,
                      E_mu_bins = E_mu_bins,
                      E_nu_bins = E_nu_bins,
                      gridpts_mu = gridpts_mu,
                      gridpts_nu = gridpts_nu,
-                     spline_method = 'linear',
-                     
-                    ) :
-    #Hist2D_str: string of .npy file location
-    #E_mu_bins: muon energy bins
-    #E_nu_bins: neutrino energy bins
-    #gridpts_mu: muon energy splining bins
-    #gridpts_nu: neutrino energy splining bins
-    #spline_method: griddata spline method input: linear, cubic, nearest
- 
-    Hist2D = np.load(Hist2D_str,mmap_mode='r')
-    
-    mask=np.where(Hist2D!=0)
+                     spline_method = 'linear'):
+     #HistND_str: string of 2D *.npy file location
+     #E_mu_bins: muon energy bins
+     #E_nu_bins: neutrino energy bins
+     #gridpts_mu: muon energy splining bins
+     #gridpts_nu: neutrino energy splining bins
+     #spline_method: griddata spline method input: linear, cubic, nearest
+    try:
+        HistND = np.load(HistND_str, mmap_mode='r')
+        HistND = np.nan_to_num(HistND)
 
-    ##Spline Linear Interpolation##
-    xv, yv=np.meshgrid((nu_bin_centers),(mu_bin_centers))
-    plotx,ploty=np.meshgrid((gridpts_nu),(gridpts_mu))
-    #print(plotx,ploty)
-    #print(Hist2D[mask])
-    grid_z1 = griddata((xv[mask],yv[mask]), Hist2D[mask], (plotx,ploty), method=spline_method)
-    #print(grid_z1)
-    grid_z1 = np.nan_to_num(grid_z1) ##why this step? (eliminating nans in arrays)
-    grid_z1 = grid_z1/np.sum(grid_z1) ##why this step? (normalizing the splined histogram)
-    Hist2D_splined = grid_z1
+        grid_dims = (E_nu_bin_centers, E_mu_bin_centers)
+        grid_arrays = np.meshgrid(gridpts_nu_centers, gridpts_mu_centers, indexing='ij')
+
+        interp = RegularGridInterpolator(grid_dims, HistND, method=spline_method, bounds_error=False, fill_value=0)
+        interpolated_data = interp(np.stack(grid_arrays, axis=-1))
+
+        return interpolated_data
+
+    except Exception as e:
+        print(e)
+
+# def Make_1D_Spline(  Hist2D_str,
+#                      E_mu_bins = E_mu_bins,
+#                      E_nu_bins = E_nu_bins,
+#                      gridpts_mu = gridpts_mu,
+#                      gridpts_nu = gridpts_nu,
+#                      spline_method = 'linear',
+                     
+#                     ) :
+#     #Hist2D_str: string of .npy file location
+#     #E_mu_bins: muon energy bins
+#     #E_nu_bins: neutrino energy bins
+#     #gridpts_mu: muon energy splining bins
+#     #gridpts_nu: neutrino energy splining bins
+#     #spline_method: griddata spline method input: linear, cubic, nearest
+ 
+#     Hist2D = np.load(Hist2D_str,mmap_mode='r')
+#     print(Hist2D.shape)
+#     try:
+#         mask=np.where(Hist2D!=0)
+
+#         ##Spline Linear Interpolation##
+#         xv, yv=np.meshgrid((E_nu_bins),(E_mu_bins))
+#         plotx,ploty=np.meshgrid((gridpts_nu),(gridpts_mu))
+#         #print(plotx)
+#         print(ploty)
+
+#         grid_z1 = griddata((xv[mask],yv[mask]), Hist2D[mask], (plotx,ploty), method=spline_method)
+#         print(grid_z1.shape)
+#         grid_z1 = np.nan_to_num(grid_z1)
+#         Hist2D_splined = grid_z1
+#         return Hist2D_splined
+#     except Exception as e:
+#         #print(flavour,angle,depth)
+#         print(e)
+#         print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
+#         #continue
+
+#         # Normalize Spline
+#     #     grid_z1 = grid_z1 / grid_z1.sum(axis=1,keepdims=True)
+#     #     grid_z1 = np.nan_to_num(grid_z1)
+
+        
     #print(Hist2D_splined)
-    return Hist2D_splined
+    
 
 flavours = config['flavours']
 angles= eval(config['angles'])
@@ -82,5 +121,6 @@ for flavour in flavours:
                 except Exception as e:
                     print(flavour,angle,depth)
                     print(e)
+                    print('Error on line {}'.format(sys.exc_info()[-1].tb_lineno), type(e).__name__, e)
                     continue
         

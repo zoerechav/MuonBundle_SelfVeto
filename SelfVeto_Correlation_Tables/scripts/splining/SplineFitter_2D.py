@@ -52,8 +52,8 @@ def make_spline_for_2D_bin(
     Hist3D_splined = Hist3D_splined
     test_nu_energy = E_nu_bins[test_index]
     Hist2D=Hist3D[:,:,test_index]
-    Hist2D=Hist2D/np.sum(Hist2D) ##normalizing the histogram 
-    xv, yv=np.meshgrid(mu_bin_centers, mu_bin_centers)
+   
+    xv, yv=np.meshgrid(E_mu_bins, E_mu_bins)
     plotx,ploty=np.meshgrid(gridpts_mu,gridpts_mu)
     mask=np.where(Hist2D!=0)
     #print(Hist2D)
@@ -61,7 +61,9 @@ def make_spline_for_2D_bin(
     try:
         grid_z1 = griddata((xv[mask],yv[mask]), Hist2D[mask], (plotx,ploty), method='linear')
         grid_z1=np.nan_to_num(grid_z1)
-        grid_z1=grid_z1/np.sum(grid_z1) ##normalizing the splined hist
+        ##new normalization line
+        #grid_z1=grid_z1/np.sum(grid_z1) ##normalizing the splined hist
+        
         print(grid_z1)
         print('i DID work')
         Hist3D_splined[:,:,test_index]=grid_z1 ##adding modified array to HIST3D

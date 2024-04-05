@@ -44,7 +44,7 @@ def Make_3D_Spline(  filename,
     for test_index in range(len(E_nu_bins)-1):
         test_nu_energy=E_nu_bins[test_index]
         Hist3D=Hist4D[:,:,:,test_index]
-        Hist3D=Hist3D/np.sum(Hist3D)
+        #Hist3D=Hist3D/np.sum(Hist3D)   
         Hist3D=np.nan_to_num(Hist3D)
 
         xv, yv,zv=np.meshgrid((mu_bin_centers),(mu_bin_centers),(mu_bin_centers))
@@ -53,7 +53,10 @@ def Make_3D_Spline(  filename,
 
         try:
             grid_z1 = griddata((xv[mask],yv[mask],zv[mask]), Hist3D[mask], (plotx,ploty,plotz), method=spline_method)      
-            grid_z1=grid_z1/np.sum(grid_z1)
+            #grid_z1=grid_z1/np.sum(grid_z1)
+            ##new line of normalization code
+            #grid_z1 = grid_z1/np.sum(Hist4D[:,:,:,energy_index]
+            grid_z1 = grid_z1 / np.sum(grid_z1, axis=-1, keepdims=True)
             grid_z1=np.nan_to_num(grid_z1)
             Hist4D_splined[:,:,:,test_index]=grid_z1
             
@@ -63,7 +66,8 @@ def Make_3D_Spline(  filename,
             length = finearray.shape[0]
             # Resize the array to shape (32, 32) using zoom, so Hist3D has same dimensions
             reshaped_finearray = zoom(finearray, (len(gridpts_mu)/length, len(gridpts_mu)/length,len(gridpts_mu)/length), order=1)
-            
+            ##new line for normalization
+            reshaped_finearray = reshaped_finearray / np.sum(reshaped_finearray, axis=-1, keepdims=True)
             reshaped_finearray=np.nan_to_num(reshaped_finearray) 
             Hist4D_splined[:,:,:,test_index]=reshaped_finearray
     return Hist4D_splined
