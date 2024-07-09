@@ -1,15 +1,14 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/icetray-start
-#METAPROJECT /cvmfs/icecube.opensciencegrid.org/users/vbasu/meta-projects/combo3/build
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.3.0/icetray-start
+#METAPROJECT /home/zrechav/i3/icetray/build
 
 
-from I3Tray import *
+from icecube.icetray import I3Tray
 from icecube import icetray, phys_services, dataio, dataclasses,MuonGun
 from icecube.simprod import segments
 import sys, math
 import copy
 import glob
 import numpy as np
-import nuflux
 import collections
 import os
 import random
@@ -45,28 +44,46 @@ print ('Started:', start_time)
 
 parser = argparse.ArgumentParser()
 
-corsika_filelist_length = 500
+corsika_filelist_length = 1
 
 gcd = config['gcd']
 
-parser.add_argument("-i", "--input", action="store", type=str, default = "/data/user/zrechav/propagated_corsika/20904/0000000-0000999/propagated_corsika_20904_000000.i3.zst", dest = "INPUT", help = "Output i3 file")
-parser.add_argument("-o", "--output", action="store", type=str, default = "/home/zrechav/test/AirShowerReader", dest = "OUTPUT", help = "Output i3 file")
+parser.add_argument("-i", "--input", action="store", type=str, dest = "INPUT", help = "Output i3 file")
+parser.add_argument("-o", "--output", action="store", type=str, dest = "OUTPUT", help = "Output i3 file")
 parser.add_argument("-g", "--gcd", action="store", type=str, default = gcd, dest="GCD", help="GCD file for input i3 file")
 
 
 args = parser.parse_args()
-
-infile = sorted(glob.glob(args.INPUT))
+print(args)
+#infile = args.INPUT
+infile = (args.INPUT)
+#infile = args.INPUT
+infiles = [gcd, infile]
+print(infiles)
+#print(infile)
 outfile = args.OUTPUT
 gcdFile= args.GCD 
 tray = I3Tray()
 
 print ("Reading input file...",  args.INPUT)
-tray.AddSegment(dataio.I3Reader, 'reader', FilenameList=infile)
+tray.AddSegment(dataio.I3Reader, 'reader', FilenameList=infiles)
 #print ("Reading input file...",  options.INPUT)  
 #print(options.GCD)
 
 
+##need this line of code for i3files with no pframes
+# def add_eventheader(frame):
+#     eh = dataclasses.I3EventHeader()
+#     eh.run_id = 1
+#     eh.event_id = add_eventheader.event_id
+#     add_eventheader.event_id += 1
+#     frame['I3EventHeader'] = eh
+    
+# add_eventheader.event_id = 1
+#tray.Add(add_eventheader, Streams=[icetray.I3Frame.DAQ])
+
+#tray.AddModule("I3NullSplitter", "fullevent", SubEventStreamName='InIceSplit')
+#tray.AddModule("I3NullSplitter",'InIceSplit')
 #########################################
 ## GATHER SOME MC TRUTH
 #########################################   
@@ -85,37 +102,189 @@ MuTypes=[
                           dataclasses.I3Particle.ParticleType.MuMinus,
                         
                           ]
+gcdFile= config['gcd']
 
 import matplotlib.path as mpltPath
-def get_surface_det(gcdFile=None):
+def select(geometry):
+        r"""Select IceCube DOMs.
+        Select all DOMs with an OM type `IceCube` from the given
+        detector geometry and sort the selected DOMs per string in
+        ascending depth.
+        Parameters
+        ----------
+        geometry : I3OMGeoMap or dict(OMKey, tuple(I3OMGeo, ...))
+            Detector geometry
+        Returns
+        -------
+        dict(int, list(tuple(OMKey, I3OMGeo)))
+            Mapping of string numbers to sequences of IceCube DOMs
+            arranged in ascending depth.
+        """
+        strings = collections.defaultdict(list)
+        # print (type(geometry))
+        for omkey, omgeo in geometry.items():
+            if np.iterable(omgeo):
+                omgeo = omgeo[0]
+
+            if omgeo.omtype == dataclasses.I3OMGeo.IceCube:
+                strings[omkey.string].append((omkey, omgeo))
+
+        for doms in strings.values():
+            doms.sort(
+                key=lambda omgeo: omgeo[1].position.z, reverse=True)
+
+        #print(strings)
+        return strings
     
-    gcdFile=gcdFile
-    #print(gcdFile,'IM HERE')
+    
+def boundaries(geometry):
+#         Side and top boundaries
+#         Find the veto's side and top boundaries.
+#         Parameters
+#         ----------
+#         geometry : I3OMGeoMap or dict(OMKey, tuple(I3OMGeo, ...))
+#             IC79 or IC86 detector geometry
+#         Returns
+
+#         -------
+#         sides : set(int)
+#             Sequence of string numbers of the outermost strings
+#         top : float
+#             Depth in detector coordinates of the first DOM on the
+#             deepest non-DeepCore string minus the thickness given
+#             by `top_layer`
+        
+        top_layer=90.*icetray.I3Units.m,
+        dust_layer=(-220.*icetray.I3Units.m,-100.*icetray.I3Units.m)
+        strings = select(geometry)
+        top = min(strings[s][0][1].position.z for s in strings if s <= 78)
+        dmax = 160.*icetray.I3Units.m
+
+        string_pos=[]
+
+        for string in strings:
+            pos = strings[string][0][1].position
+            string_pos.append([pos.x,pos.y,pos.z])
+            
+        #I chose these strings, 2nd outermost layer
+        manual_sides = [9,10,11,12,20,29,39,49,58,66,65,64,71,70,
+                       69,61,52,42,32,23,15,8] 
+        boundary_x=[]
+        boundary_y=[]
+
+        
+        for side_string in manual_sides:
+            pos=strings[side_string][0][1].position
+            boundary_x.append(pos.x)
+            boundary_y.append(pos.y)
+        boundary_x.append(boundary_x[0])
+        boundary_y.append(boundary_y[0])
+        return boundary_x,boundary_y
+    
+def get_surface_det_og(gcdFile=None):
+    
+    from icecube import MuonGun
+    gcdFile=config['gcd']
     bound_2D=[]
-    surface_det = MuonGun.ExtrudedPolygon.from_file(gcdFile, padding=200)##Build Polygon from I3Geometry
-    #surface_det = MuonGun.Cylinder(1000,700) ##Cylinder 1000m high with 700m radius
-    #print(surface_det)
-    x=[(surface_det.x[i],surface_det.y[i])for i in range(len(surface_det.x))]###getting only x and y
-    bound_2D=mpltPath.Path(x)#Projection of detector on x,y plane
-    #bound_2D = surface_det
+    MuonGunGCD= gcdFile
+    surface_det = MuonGun.ExtrudedPolygon.from_file(MuonGunGCD, padding=0)##Build Polygon from I3Geometr
+    f = dataio.I3File(MuonGunGCD)
+    omgeo = f.pop_frame(icetray.I3Frame.Geometry)['I3Geometry'].omgeo
+    surface_det_x,surface_det_y=boundaries(omgeo)
+    x=[(surface_det_x[i],surface_det_y[i])for i in range(len(surface_det_x))]
+    bound_2D= mpltPath.Path(x)#Projection of detector on x,y plane
+    #print(bound_2D)
     return bound_2D, surface_det
 
-##call here to reduce computation time
-bound_2D,surface_det = get_surface_det(gcdFile=gcdFile)
+
+def extend_diagonally(point, radial_limit=700):
+    x, y = point
+    current_radius = np.sqrt(x**2 + y**2)
+    if current_radius == 0:
+        return [radial_limit, 0]  # Special case for origin
+    scale_factor = radial_limit / current_radius
+    new_x = x * scale_factor
+    new_y = y * scale_factor
+    return [new_x, new_y]
+
+def get_surface_det(gcdFile=None):
+    
+    from icecube import MuonGun
+    gcdFile=config['gcd']
+    bound_2D=[]
+    MuonGunGCD= gcdFile
+    surface_det = MuonGun.ExtrudedPolygon.from_file(MuonGunGCD, padding=0)##Build Polygon from I3Geometr
+    f = dataio.I3File(MuonGunGCD)
+    omgeo = f.pop_frame(icetray.I3Frame.Geometry)['I3Geometry'].omgeo
+    surface_det_x,surface_det_y=boundaries(omgeo)
+    original_points = np.column_stack((surface_det_x, surface_det_y))
+    extended_points = np.apply_along_axis(extend_diagonally, axis=1, arr=original_points)
+    surface_det_x = extended_points[:, 0]
+    surface_det_y = extended_points[:, 1]
+    x=[(surface_det_x[i],surface_det_y[i])for i in range(len(surface_det_x))]
+    bound_2D= mpltPath.Path(x)#Projection of detector on x,y plane
+    #print(bound_2D)
+    return bound_2D, surface_det
 
 def boundary_check(particle1,gcdFile=None):
     ####checks if particle is inside the detector###
+    gcdFile=gcdFile
+    bound_2D,surface_det = get_surface_det(gcdFile=gcdFile)
     inlimit = False  
-    if ((particle1.pos.z <=max(surface_det.z)) and (particle1.pos.z>=min(surface_det.z))):
-        if bound_2D.contains_points([(particle1.pos.x, particle1.pos.y)]):
-            inlimit=True
-
+    if (((particle1.pos.z <=max(surface_det.z)) and (particle1.pos.z>=min(surface_det.z)))) and bound_2D.contains_points([(particle1.pos.x, particle1.pos.y)]):
+            inlimit=True       
+    #frame["In_Boundary"] = icetray.I3Bool(inlimit)
     return inlimit
 
+bound_2D,surface_det = get_surface_det()
+
+# filters = [
+#     'CascadeFilter_13',
+#     'DeepCoreFilter_13',
+#     'EHEAlertFilterHB_15',
+#     'EHEAlertFilter_15',
+#     'EstresAlertFilter_18',
+#     'FSSCandidate_13',
+#     'FSSFilter_13',
+#     'FixedRateFilter_13',
+#     'GFUFilter_17', 
+#     'GRECOOnlineFilter_19', 
+#     'HESEFilter_15', 
+#     'HighQFilter_17', 
+#     'I3DAQDecodeException',
+#     'IceActTrigFilter_18',
+#     'IceTopSTA3_13',
+#     'IceTopSTA5_13',
+#     'IceTop_InFill_STA2_17',
+#     'IceTop_InFill_STA3_13' ,
+#     'InIceSMT_IceTopCoincidence_13',
+#     'LowUp_13', 
+#     'MESEFilter_15', 
+#     'MonopoleFilter_16', 
+#     'MoonFilter_13', 
+#     'MuonFilter_13', 
+#     'OnlineL2Filter_17', 
+#     'SDST_IceTopSTA3_13', 
+#     'SDST_IceTop_InFill_STA3_13', 
+#     'SDST_InIceSMT_IceTopCoincidence_13', 
+#     'ScintMinBias_16', 
+#     'SlopFilter_13', 
+#     'SunFilter_13', 
+#     'VEF_13',
+
+#           ]
+# def check_filter(frame):
+#     f = frame['QFilterMask']
+#     for filt in filters:
+#         if filt in f and f[filt].condition_passed:
+#             return True                      
+#     return False
 
 def NeutrinoSelector(frame):
-    #print('IM in NEUTRINO SELECTOR')
+    print('IM in NEUTRINO SELECTOR')
     if 'I3MCTree' in frame and 'Homogenized_QTot' in frame:
+        print('im in da loop')
+        #print(frame['FilterMask'])                                                        
         frame['I3MCTree_copy']=frame['I3MCTree']
         mctree = frame['I3MCTree_copy']
         #mctree = frame['I3MCTree_preMuonProp']
@@ -129,10 +298,10 @@ def NeutrinoSelector(frame):
                 if 'PolyplopiaPrimary' in frame:
                     frame['PolyplopiaPrimaryCopy'] = frame['PolyplopiaPrimary']
                     del frame['PolyplopiaPrimary']
-                frame["PolyplopiaPrimary"]=dataclasses.I3Particle(p)
-                frame["PrimaryMass"]=dataclasses.I3Double(mass_dict[str(p.pdg_encoding)])
+                frame["PolyplopiaPrimary"]=dataclasses.I3Particle(primary)
+                frame["PrimaryMass"]=dataclasses.I3Double(mass_dict[str(primary.pdg_encoding)])
             #if p.type in NuTypes:
-            if (p.type in NuTypes) and (p.energy > 10.):
+            if (p.type in NuTypes) and (p.energy > 273.):
                 neutrinos.append(p)
         if neutrinos==[]:
             return False        
@@ -150,6 +319,7 @@ def NeutrinoSelector(frame):
         frame['shower_neutrino_zenith']=dataclasses.I3Double(neutrino.dir.zenith)
         frame['shower_neutrino_type']=dataclasses.I3Double(neutrino.type)
         frame['NeutrinoParent'] =dataclasses.I3Particle(neutrino_parent)
+        print('I FINISHED SELECTING?')
         mctree.erase_children(neutrino)
                 
         
@@ -186,6 +356,7 @@ def get_lateral_separation(muon, particle2):
 
 
 def get_deposit_energy(frame):
+    print('IM IN DEPOSIT ENERGY')
     if 'I3MCTree_copy' in frame:
         mctree=frame['I3MCTree_copy']
         muon_multiplicity=0
@@ -204,7 +375,7 @@ def get_deposit_energy(frame):
                     muon_multiplicity+=1
 
         
-        frame['Total_Muon_energy'] =dataclasses.I3Double(e_muon_total)
+        frame['Total_Muon_Energy'] =dataclasses.I3Double(e_muon_total)
         frame['MuonMultiplicity'] =dataclasses.I3Double(muon_multiplicity)
 
         
@@ -232,51 +403,6 @@ def get_deposit_energy(frame):
             
 tray.Add(get_deposit_energy)
 
-import simweights
-
-def corsika_weighter(frame):
-    weight_keys = [
-    "CylinderLength",
-    "CylinderRadius",
-    "EnergyPrimaryMax",
-    "EnergyPrimaryMin",
-    "NEvents",
-    "OverSampling",
-    "ParticleType",
-    "PrimaryEnergy",
-    "PrimarySpectralIndex",
-    "PrimaryType",
-    "ThetaMax",
-    "ThetaMin",
-    "Weight",
-    ]
-
-    particle_keys = ["type", "energy", "zenith"]
-
-    CorsikaWeightMap: dict = {k: [] for k in weight_keys}
-    PolyplopiaPrimary: dict = {k: [] for k in ["type", "energy", "zenith"]}
-    MCtype_corsika = np.array([])
-    MCenergy_corsika = np.array([])
-
-    
-    if "FilterMask" in frame:
-        # Frame may contain coincident events so select injected primary shower 'PolyplopiaPrimary'
-        MCtype_corsika = np.append(MCtype_corsika, frame["PolyplopiaPrimary"].type)
-        MCenergy_corsika = np.append(MCenergy_corsika, frame["PolyplopiaPrimary"].energy)
-
-        for k in weight_keys:
-            CorsikaWeightMap[k].append(frame["CorsikaWeightMap"][k])
-        #print(frame["CorsikaWeightMap"])
-        PolyplopiaPrimary["zenith"].append(frame["PolyplopiaPrimary"].dir.zenith)
-        PolyplopiaPrimary["type"].append(frame["PolyplopiaPrimary"].type)
-        PolyplopiaPrimary["energy"].append(frame["PolyplopiaPrimary"].energy)
-
-    fobj = {"CorsikaWeightMap": CorsikaWeightMap, "PolyplopiaPrimary": PolyplopiaPrimary}
-    wobj = simweights.CorsikaWeighter(fobj, nfiles=corsika_filelist_length)
-    Weights_GaisserH4a = wobj.get_weights(simweights.GaisserH4a())
-    frame["GaisserH4a_weight"] = dataclasses.I3VectorDouble(Weights_GaisserH4a)
-    
-tray.AddModule(corsika_weighter,'corsika_weighter')
 
 ###########book keys for hdf file###########
 table_keys=[
@@ -285,17 +411,19 @@ table_keys=[
             "OneWeight",
             "NEvents",
             "PrimaryMass",
+            'I3PrimaryInjectorInfo',
             "PolyplopiaPrimary",
+            'PolyplopiaInfo',
             "I3MCWeightDict",
             "CorsikaWeightMap",
             'PrimaryFlavour',
+            'I3CorsikaInfo',
             'Interaction_Type',
             'OneWeight',
             'MuonWeight',
             'MuonWeight2',
             "MCPrimaryType",
             "MCPrimary",
-            'IsUpgoingMuon_L4',
             'Muon_Energy_L1',
             'Muon_Energy_L2',
             'Muon_Energy_L3',
@@ -324,12 +452,9 @@ table_keys=[
             'MuonMultiplicity',
             
             'ShowerNeutrino',
-            'Total_Muon_energy',
+            'Total_Muon_Energy',
             'BrightestMuonAtDepth',
             'Energy_BrightestMuonAtDepth',
-            'SPEFit4_rlogL' ,
-            'SPEFitSingle_rlogL',
-            'SPEFit2_rlogL',
             "I3EventHeader",
             "NEvents",
             'PolyplopiaPrimaryCopy',
@@ -337,15 +462,21 @@ table_keys=[
             'shower_neutrino_depth',
             'shower_neutrino_energy',
             'shower_neutrino_zenith',
-            'shower_neutrino_type'
+            'shower_neutrino_type',
+            'NeutrinoParent',
+            'I3MCTree'
            ]
+
+tray.AddModule('I3Writer', 'writer',
+    DropOrphanStreams=[icetray.I3Frame.DAQ],
+    Streams=[  icetray.I3Frame.DAQ, icetray.I3Frame.Physics],
+    filename=outfile+'.i3.zst')
 
 tray.Add(I3HDFWriter,'HDFwriter',
               Output=outfile+".hdf5",
               keys         = table_keys,
               SubEventStreams = ['InIceSplit']
 )
-
 tray.AddModule('TrashCan', 'thecan')
 
 tray.Execute()

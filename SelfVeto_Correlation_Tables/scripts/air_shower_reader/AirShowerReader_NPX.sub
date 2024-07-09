@@ -19,7 +19,7 @@ notification = never
 #+AccountingGroup="uwa.$ENV(USER)"
 Requirements = (OpSysMajorVer == 7 || OSGVO_OS_VERSION == 7)
 +SingularityImage="/cvmfs/singularity.opensciencegrid.org/opensciencegrid/osgvo-el7:latest"
-request_memory = 10000
+request_memory = 8000
 #request_memory = (NumJobStarts is undefined) ? 2 * pow(2, 10) : 2048 * pow(2, NumJobStarts + 1)
 periodic_release = (HoldReasonCode =?= 21 && HoldReasonSubCode =?= 1001) || HoldReasonCode =?= 21
 periodic_remove = (JobStatus =?= 5 && (HoldReasonCode =!= 34 && HoldReasonCode =!= 21)) || (RequestMemory > 13192)

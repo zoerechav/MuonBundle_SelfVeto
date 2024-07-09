@@ -1,0 +1,3 @@
+JOB propogate_000000 /home/zrechav/SelfVeto_Correlation_Tables/scripts/air_shower_reader/AirShowerReader_NPX.sub
+VARS propogate_000000 infile="/data/sim/IceCube/2023/filtered/level2/CORSIKA-in-ice/22615/0000000-0000999/Level2_corsika.022615.000000.i3.zst" outfile="/data/user/zrechav/airshowered_corsika/22615/0000000-0000999/airshowered_corsika_22615_000000" filenum="000000"
+Retry propogate_000000 2
