@@ -1,12 +1,11 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.1.1/icetray-start
-#METAPROJECT /cvmfs/icecube.opensciencegrid.org/users/vbasu/meta-projects/combo2/build
-
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.3.0/icetray-start
+#METAPROJECT /home/zrechav/i3/icetray/build
 import numpy as np
 import math
 import os.path
 from os import path
 from icecube.tableio import I3TableWriter
-from icecube.hdfwriter import I3HDFTableService, I3HDFWriter
+#from icecube.hdfwriter import I3HDFTableService, I3HDFWriter
 import tables
 import h5py
 import numpy as np
@@ -14,13 +13,15 @@ import math
 import os.path
 from os import path
 from icecube.tableio import I3TableWriter
-from icecube.hdfwriter import I3HDFTableService, I3HDFWriter
+#from icecube.hdfwriter import I3HDFTableService, I3HDFWriter
 import tables
 import glob
 import yaml
 import h5py
 import pandas as pd
 from icecube.dataclasses import I3Double, I3Particle, I3Direction, I3Position, I3VectorI3Particle, I3Constants, I3VectorOMKey
+import traceback
+import simweights
 
 with open('/home/zrechav/SelfVeto_Correlation_Tables/scripts/config.yaml', 'r') as yaml_file:
     config = yaml.safe_load(yaml_file)
@@ -53,13 +54,30 @@ GaisserH4a_weight = np.array([])
 PrimaryMass, PrimaryEnergyperNucleon= np.array([]),np.array([])
 
 filename = config['corsika_sample']
+nfiles = 3
+
+def calc_weight(inp = filename,numfiles = nfiles):
+    with pd.HDFStore(inp, "r") as hdffile:
+        weighter = simweights.CorsikaWeighter(hdffile, nfiles=3)
+        flux = simweights.GaisserH4a()
+        weights = weighter.get_weights(flux)  
+    return weights
+    
 
 if (path.exists(filename)):
     try:
         print('I EXIST')
+        GaisserH4a_weight = calc_weight()
+        print(GaisserH4a_weight)
+        
+        
         hdf=h5py.File(filename, 'r')
+        
+        ##weighting info?
+        
+        
 ########ENERGY, ZENITH, AND WEIGHTING INFORMATION#######
-        GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
+        #GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('weights')['value']))
         Zenith_Shower_Neutrino = np.append(Zenith_Shower_Neutrino,np.asarray((hdf.get('shower_neutrino_zenith')['value'])))
             
         Flavour_Shower_Neutrino = np.append(Flavour_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_type')['value']))
@@ -101,12 +119,13 @@ if (path.exists(filename)):
         Muon_Shower_separation_L4 = np.append(Muon_Shower_separation_L4, np.asarray(hdf.get('Muon_L4_Shower_separation')['value']))
         Muon_Shower_separation_L5 = np.append(Muon_Shower_separation_L5, np.asarray(hdf.get('Muon_L5_Shower_separation')['value']))
 
-        Total_Muon_energy = np.append(Total_Muon_energy,np.asarray(hdf.get('Total_Muon_energy')['value']))
+        Total_Muon_energy = np.append(Total_Muon_energy,np.asarray(hdf.get('Total_Muon_Energy')['value']))
         print('I FINISHED LOADING MY ARRAYS WITH HDF INFO')
         hdf.close()
     except Exception as e:
         print(filename+" Is Faulty")
         print(e)
+        print(f"Occurred on line: {traceback.extract_tb(e.__traceback__)[-1][1]}")
 
         hdf.close()
 

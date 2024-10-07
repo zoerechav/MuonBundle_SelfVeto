@@ -67,23 +67,7 @@ tray = I3Tray()
 
 print ("Reading input file...",  args.INPUT)
 tray.AddSegment(dataio.I3Reader, 'reader', FilenameList=infiles)
-#print ("Reading input file...",  options.INPUT)  
-#print(options.GCD)
 
-
-##need this line of code for i3files with no pframes
-# def add_eventheader(frame):
-#     eh = dataclasses.I3EventHeader()
-#     eh.run_id = 1
-#     eh.event_id = add_eventheader.event_id
-#     add_eventheader.event_id += 1
-#     frame['I3EventHeader'] = eh
-    
-# add_eventheader.event_id = 1
-#tray.Add(add_eventheader, Streams=[icetray.I3Frame.DAQ])
-
-#tray.AddModule("I3NullSplitter", "fullevent", SubEventStreamName='InIceSplit')
-#tray.AddModule("I3NullSplitter",'InIceSplit')
 #########################################
 ## GATHER SOME MC TRUTH
 #########################################   
@@ -105,184 +89,50 @@ MuTypes=[
 gcdFile= config['gcd']
 
 import matplotlib.path as mpltPath
-def select(geometry):
-        r"""Select IceCube DOMs.
-        Select all DOMs with an OM type `IceCube` from the given
-        detector geometry and sort the selected DOMs per string in
-        ascending depth.
-        Parameters
-        ----------
-        geometry : I3OMGeoMap or dict(OMKey, tuple(I3OMGeo, ...))
-            Detector geometry
-        Returns
-        -------
-        dict(int, list(tuple(OMKey, I3OMGeo)))
-            Mapping of string numbers to sequences of IceCube DOMs
-            arranged in ascending depth.
-        """
-        strings = collections.defaultdict(list)
-        # print (type(geometry))
-        for omkey, omgeo in geometry.items():
-            if np.iterable(omgeo):
-                omgeo = omgeo[0]
-
-            if omgeo.omtype == dataclasses.I3OMGeo.IceCube:
-                strings[omkey.string].append((omkey, omgeo))
-
-        for doms in strings.values():
-            doms.sort(
-                key=lambda omgeo: omgeo[1].position.z, reverse=True)
-
-        #print(strings)
-        return strings
+##need this line of code for i3files with no pframes
+def add_eventheader(frame):
+    eh = dataclasses.I3EventHeader()
+    eh.run_id = 1
+    eh.event_id = add_eventheader.event_id
+    add_eventheader.event_id += 1
+    frame['I3EventHeader'] = eh
     
-    
-def boundaries(geometry):
-#         Side and top boundaries
-#         Find the veto's side and top boundaries.
-#         Parameters
-#         ----------
-#         geometry : I3OMGeoMap or dict(OMKey, tuple(I3OMGeo, ...))
-#             IC79 or IC86 detector geometry
-#         Returns
+add_eventheader.event_id = 1
+tray.Add(add_eventheader, Streams=[icetray.I3Frame.DAQ])
 
-#         -------
-#         sides : set(int)
-#             Sequence of string numbers of the outermost strings
-#         top : float
-#             Depth in detector coordinates of the first DOM on the
-#             deepest non-DeepCore string minus the thickness given
-#             by `top_layer`
-        
-        top_layer=90.*icetray.I3Units.m,
-        dust_layer=(-220.*icetray.I3Units.m,-100.*icetray.I3Units.m)
-        strings = select(geometry)
-        top = min(strings[s][0][1].position.z for s in strings if s <= 78)
-        dmax = 160.*icetray.I3Units.m
+tray.AddModule("I3NullSplitter", "fullevent", SubEventStreamName='InIceSplit')
 
-        string_pos=[]
-
-        for string in strings:
-            pos = strings[string][0][1].position
-            string_pos.append([pos.x,pos.y,pos.z])
-            
-        #I chose these strings, 2nd outermost layer
-        manual_sides = [9,10,11,12,20,29,39,49,58,66,65,64,71,70,
-                       69,61,52,42,32,23,15,8] 
-        boundary_x=[]
-        boundary_y=[]
-
-        
-        for side_string in manual_sides:
-            pos=strings[side_string][0][1].position
-            boundary_x.append(pos.x)
-            boundary_y.append(pos.y)
-        boundary_x.append(boundary_x[0])
-        boundary_y.append(boundary_y[0])
-        return boundary_x,boundary_y
-    
-def get_surface_det_og(gcdFile=None):
-    
-    from icecube import MuonGun
-    gcdFile=config['gcd']
-    bound_2D=[]
-    MuonGunGCD= gcdFile
-    surface_det = MuonGun.ExtrudedPolygon.from_file(MuonGunGCD, padding=0)##Build Polygon from I3Geometr
-    f = dataio.I3File(MuonGunGCD)
-    omgeo = f.pop_frame(icetray.I3Frame.Geometry)['I3Geometry'].omgeo
-    surface_det_x,surface_det_y=boundaries(omgeo)
-    x=[(surface_det_x[i],surface_det_y[i])for i in range(len(surface_det_x))]
-    bound_2D= mpltPath.Path(x)#Projection of detector on x,y plane
-    #print(bound_2D)
-    return bound_2D, surface_det
-
-
-def extend_diagonally(point, radial_limit=700):
-    x, y = point
-    current_radius = np.sqrt(x**2 + y**2)
-    if current_radius == 0:
-        return [radial_limit, 0]  # Special case for origin
-    scale_factor = radial_limit / current_radius
-    new_x = x * scale_factor
-    new_y = y * scale_factor
-    return [new_x, new_y]
-
+###surface for cylinder of partially contained boundary, with 50 meter padding on cylinder top as an extra bin --> this surface_det configuration is DIFFERENT from contained vs. partially contained id, independent of string geometry    
 def get_surface_det(gcdFile=None):
     
     from icecube import MuonGun
-    gcdFile=config['gcd']
     bound_2D=[]
-    MuonGunGCD= gcdFile
-    surface_det = MuonGun.ExtrudedPolygon.from_file(MuonGunGCD, padding=0)##Build Polygon from I3Geometr
-    f = dataio.I3File(MuonGunGCD)
-    omgeo = f.pop_frame(icetray.I3Frame.Geometry)['I3Geometry'].omgeo
-    surface_det_x,surface_det_y=boundaries(omgeo)
-    original_points = np.column_stack((surface_det_x, surface_det_y))
-    extended_points = np.apply_along_axis(extend_diagonally, axis=1, arr=original_points)
-    surface_det_x = extended_points[:, 0]
-    surface_det_y = extended_points[:, 1]
+    surface_det = MuonGun.Cylinder(1100,700)   
+    t = np.linspace(0, 2 * np.pi, 100)
+    surface_det_x = 700 * np.cos(t)
+    surface_det_y = 700 * np.sin(t)
     x=[(surface_det_x[i],surface_det_y[i])for i in range(len(surface_det_x))]
     bound_2D= mpltPath.Path(x)#Projection of detector on x,y plane
-    #print(bound_2D)
     return bound_2D, surface_det
-
+    
 def boundary_check(particle1,gcdFile=None):
     ####checks if particle is inside the detector###
     gcdFile=gcdFile
     bound_2D,surface_det = get_surface_det(gcdFile=gcdFile)
+    cyl_top = 550.
+    cyl_bot = -500.
     inlimit = False  
-    if (((particle1.pos.z <=max(surface_det.z)) and (particle1.pos.z>=min(surface_det.z)))) and bound_2D.contains_points([(particle1.pos.x, particle1.pos.y)]):
-            inlimit=True       
-    #frame["In_Boundary"] = icetray.I3Bool(inlimit)
+    print(particle1.pos.z)
+    if (((particle1.pos.z <=cyl_top) and (particle1.pos.z>=cyl_bot))) and bound_2D.contains_points([(particle1.pos.x, particle1.pos.y)]):
+            inlimit=True            
     return inlimit
 
 bound_2D,surface_det = get_surface_det()
 
-# filters = [
-#     'CascadeFilter_13',
-#     'DeepCoreFilter_13',
-#     'EHEAlertFilterHB_15',
-#     'EHEAlertFilter_15',
-#     'EstresAlertFilter_18',
-#     'FSSCandidate_13',
-#     'FSSFilter_13',
-#     'FixedRateFilter_13',
-#     'GFUFilter_17', 
-#     'GRECOOnlineFilter_19', 
-#     'HESEFilter_15', 
-#     'HighQFilter_17', 
-#     'I3DAQDecodeException',
-#     'IceActTrigFilter_18',
-#     'IceTopSTA3_13',
-#     'IceTopSTA5_13',
-#     'IceTop_InFill_STA2_17',
-#     'IceTop_InFill_STA3_13' ,
-#     'InIceSMT_IceTopCoincidence_13',
-#     'LowUp_13', 
-#     'MESEFilter_15', 
-#     'MonopoleFilter_16', 
-#     'MoonFilter_13', 
-#     'MuonFilter_13', 
-#     'OnlineL2Filter_17', 
-#     'SDST_IceTopSTA3_13', 
-#     'SDST_IceTop_InFill_STA3_13', 
-#     'SDST_InIceSMT_IceTopCoincidence_13', 
-#     'ScintMinBias_16', 
-#     'SlopFilter_13', 
-#     'SunFilter_13', 
-#     'VEF_13',
-
-#           ]
-# def check_filter(frame):
-#     f = frame['QFilterMask']
-#     for filt in filters:
-#         if filt in f and f[filt].condition_passed:
-#             return True                      
-#     return False
 
 def NeutrinoSelector(frame):
     print('IM in NEUTRINO SELECTOR')
-    if 'I3MCTree' in frame and 'Homogenized_QTot' in frame:
+    if 'I3MCTree' in frame:# and 'Homogenized_QTot' in frame: ##to make sure i am grabbing the in ice split pframe and no others
         print('im in da loop')
         #print(frame['FilterMask'])                                                        
         frame['I3MCTree_copy']=frame['I3MCTree']
@@ -293,6 +143,7 @@ def NeutrinoSelector(frame):
         neutrinos=[]
         primary=None
         for p in mctree:#search for neutrino
+            ##conditional if loop --> only if there is no polyplopiaprimary information for some reason
             if mctree.depth(p)==0 and primary==None:
                 primary=p
                 if 'PolyplopiaPrimary' in frame:
@@ -300,20 +151,34 @@ def NeutrinoSelector(frame):
                     del frame['PolyplopiaPrimary']
                 frame["PolyplopiaPrimary"]=dataclasses.I3Particle(primary)
                 frame["PrimaryMass"]=dataclasses.I3Double(mass_dict[str(primary.pdg_encoding)])
-            #if p.type in NuTypes:
-            if (p.type in NuTypes) and (p.energy > 273.):
-                neutrinos.append(p)
+
+            if (p.type in NuTypes) and (p.energy > 500.): ##273 propagation cutoff, 500 DNNCascades cutoff
+                neutrinos.append(p)                       
         if neutrinos==[]:
-            return False        
+            print('IM EMPTY OF NEUTRINOS, nEXT')
+            return False 
+        num_neutrinos = len(neutrinos)
+        frame['num_neutrinos'] = dataclasses.I3Double(num_neutrinos)
         neutrino=random.choice(neutrinos)
         neutrino_parent=mctree.parent(neutrino)
         frame['ShowerNeutrino'] =dataclasses.I3Particle(neutrino)
+        
+        
         intersection=surface_det.intersection(neutrino.pos, neutrino.dir)#points of intersection
         z_inter=neutrino.pos.z-intersection.first*np.cos(neutrino.dir.zenith)
+        n_rho = np.sqrt(neutrino.pos.x**2 + neutrino.pos.y**2)
+        rho_inter = n_rho - intersection.first * np.sin(neutrino.dir.zenith)
+        # Calculate x and y from rho
+        x_inter = rho_inter * np.cos(neutrino.dir.azimuth)
+        y_inter = rho_inter * np.sin(neutrino.dir.azimuth)
         #print(z_inter)
         depth = 1948.07 - z_inter
         #print(depth)
+        frame['rho_neutrino'] = dataclasses.I3Double(n_rho)
         frame['z_inter'] = dataclasses.I3Double(z_inter)
+        frame['rho_inter'] = dataclasses.I3Double(rho_inter)
+        frame['x_inter'] = dataclasses.I3Double(x_inter)
+        frame['y_inter'] = dataclasses.I3Double(y_inter)
         frame['shower_neutrino_depth'] = dataclasses.I3Double(1948.07 - z_inter)
         frame['shower_neutrino_energy']=dataclasses.I3Double(neutrino.energy)
         frame['shower_neutrino_zenith']=dataclasses.I3Double(neutrino.dir.zenith)
@@ -368,13 +233,15 @@ def get_deposit_energy(frame):
             if (boundary_check(track,gcdFile)): continue
        
             track_energy_at_det=track.get_energy(surface_det.intersection(track.pos, track.dir).first)
-            if track_energy_at_det>10.: ##10 GeV minimum energy
+            if track_energy_at_det>10.: ##5 GeV minimum energy
                     e_muon_total+=track_energy_at_det
                     muon_list.append(track)
                     muon_energy_list.append(track_energy_at_det)
                     muon_multiplicity+=1
 
-        
+        if muon_list == []: ##adding new line here 2 Sept 2024
+            print('IM EMPTY OF MUONS, nEXT')
+            return False
         frame['Total_Muon_Energy'] =dataclasses.I3Double(e_muon_total)
         frame['MuonMultiplicity'] =dataclasses.I3Double(muon_multiplicity)
 
@@ -386,12 +253,30 @@ def get_deposit_energy(frame):
             energy_name="Muon_Energy_L{}".format(ctr)
             muon_name="Muon_L{}".format(ctr)
             muon_depth_name="Muon_L{}_Depth".format(ctr)
+            rho_name="Muon_L{}_rho".format(ctr)
+            z_inter_name ="Muon_L{}_z_inter".format(ctr)
+            y_inter_name ="Muon_L{}_y_inter".format(ctr)
+            x_inter_name ="Muon_L{}_x_inter".format(ctr)
+            rho_inter_name ="Muon_L{}_rho_inter".format(ctr)
+            
             frame[energy_name]=dataclasses.I3Double(energy)
             frame[muon_name]=dataclasses.I3Particle(muon)
             
             intersection=surface_det.intersection(muon.pos, muon.dir)#points of intersection
             z_inter=muon.pos.z-intersection.first*np.cos(muon.dir.zenith)
             depth=1948.07-z_inter
+            muon_rho = np.sqrt(muon.pos.x**2 + muon.pos.y**2)
+            rho_inter = muon_rho - intersection.first * np.sin(muon.dir.zenith)
+        # Calculate x and y from rho
+            x_inter = rho_inter * np.cos(muon.dir.azimuth)
+            y_inter = rho_inter * np.sin(muon.dir.azimuth)
+        
+            frame[rho_name] = dataclasses.I3Double(muon_rho)
+            frame[z_inter_name] = dataclasses.I3Double(z_inter)
+            frame[rho_inter_name] = dataclasses.I3Double(rho_inter)
+            frame[x_inter_name] = dataclasses.I3Double(x_inter)
+            frame[y_inter_name] = dataclasses.I3Double(y_inter)
+            
             frame[muon_depth_name]=dataclasses.I3Double(depth)
             muon_sep_neut_name="Muon_L{}_Neutrino_separation".format(ctr)
             muon_sep_shower_name="Muon_L{}_Shower_separation".format(ctr)
@@ -400,14 +285,14 @@ def get_deposit_energy(frame):
             frame[muon_sep_neut_name]=dataclasses.I3Double(sep1)
             sep2=get_lateral_separation(muon,frame["PolyplopiaPrimary"])
             frame[muon_sep_shower_name]=dataclasses.I3Double(sep2)
-            
+            print('I FINISHED MUON SELECTING')
 tray.Add(get_deposit_energy)
 
 
 ###########book keys for hdf file###########
 table_keys=[
             'GaisserH4a_weight',
-            "HomogenizedQTot",
+            #"HomogenizedQTot",
             "OneWeight",
             "NEvents",
             "PrimaryMass",
@@ -417,7 +302,7 @@ table_keys=[
             "I3MCWeightDict",
             "CorsikaWeightMap",
             'PrimaryFlavour',
-            'I3CorsikaInfo',
+            #'I3CorsikaInfo',
             'Interaction_Type',
             'OneWeight',
             'MuonWeight',
@@ -463,8 +348,40 @@ table_keys=[
             'shower_neutrino_energy',
             'shower_neutrino_zenith',
             'shower_neutrino_type',
-            'NeutrinoParent',
-            'I3MCTree'
+            #'NeutrinoParent',
+            'num_neutrinos',
+    
+            ###new keys to add
+            'rho_neutrino',   
+            'rho_inter',
+            'x_inter',
+            'y_inter',
+            'Muon_L1_rho',
+            'Muon_L1_rho_inter',
+            'Muon_L1_z_inter',
+            'Muon_L1_y_inter',
+            'Muon_L1_x_inter',
+            'Muon_L2_rho',
+            'Muon_L2_rho_inter',
+            'Muon_L2_z_inter',
+            'Muon_L2_y_inter',
+            'Muon_L2_x_inter',
+            'Muon_L3_rho',
+            'Muon_L3_rho_inter',
+            'Muon_L3_z_inter',
+            'Muon_L3_y_inter',
+            'Muon_L3_x_inter',
+            'Muon_L4_rho',
+            'Muon_L4_rho_inter',
+            'Muon_L4_z_inter',
+            'Muon_L4_y_inter',
+            'Muon_L4_x_inter',
+            'Muon_L5_rho',
+            'Muon_L5_rho_inter',
+            'Muon_L5_z_inter',
+            'Muon_L5_y_inter',
+            'Muon_L5_x_inter',
+            #'I3MCTree'
            ]
 
 tray.AddModule('I3Writer', 'writer',
@@ -472,11 +389,11 @@ tray.AddModule('I3Writer', 'writer',
     Streams=[  icetray.I3Frame.DAQ, icetray.I3Frame.Physics],
     filename=outfile+'.i3.zst')
 
-tray.Add(I3HDFWriter,'HDFwriter',
-              Output=outfile+".hdf5",
-              keys         = table_keys,
-              SubEventStreams = ['InIceSplit']
-)
+# tray.Add(I3HDFWriter,'HDFwriter',
+#               Output=outfile+".hdf5",
+#               keys         = table_keys,
+#               SubEventStreams = ['InIceSplit']
+# )
 tray.AddModule('TrashCan', 'thecan')
 
 tray.Execute()

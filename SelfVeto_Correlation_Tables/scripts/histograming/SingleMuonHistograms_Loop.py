@@ -20,6 +20,8 @@ import pandas as pd
 import yaml
 import argparse
 import os
+
+import simweights
  
 with open('/home/zrechav/SelfVeto_Correlation_Tables/scripts/config.yaml', 'r') as yaml_file:
     config = yaml.safe_load(yaml_file)
@@ -42,12 +44,23 @@ Flavour_Shower_Neutrino = np.array([])
 GaisserH4a_weight = np.array([])
 
 filename = config['corsika_sample']
+
+nfiles = 3
+
+def calc_weight(inp = filename,numfiles = nfiles):
+    with pd.HDFStore(inp, "r") as hdffile:
+        weighter = simweights.CorsikaWeighter(hdffile, nfiles=3)
+        flux = simweights.GaisserH4a()
+        weights = weighter.get_weights(flux)  
+    return weights
+
 if (path.exists(filename)):
     try:
         print('I EXIST')
+        GaisserH4a_weight = calc_weight()
         hdf=h5py.File(filename, 'r')
 
-        GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
+        #GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
         Zenith_Shower_Neutrino = np.append(Zenith_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_zenith')['value']))
         Flavour_Shower_Neutrino = np.append(Flavour_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_type')['value']))
         Energy_Shower_Neutrino = np.append(Energy_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_energy')['value']))

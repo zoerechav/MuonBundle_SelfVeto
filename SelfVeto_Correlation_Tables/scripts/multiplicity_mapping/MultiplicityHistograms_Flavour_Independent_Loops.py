@@ -21,6 +21,8 @@ import pandas as pd
 import yaml
 import argparse
 import os
+
+import simweights
  
 parser = argparse.ArgumentParser()
 
@@ -33,7 +35,7 @@ E_nu_bins=eval(config['E_nu_bins'])
 nu_bin_centers = eval(config['nu_bin_centers'])
 E_mu_bins=eval(config['E_mu_bins'])
 mu_bin_centers = eval(config['mu_bin_centers'])
-
+#mult_bins = eval(config['mult_bins'])
 
 Muon_Energy_L1 = np.array([])
 
@@ -47,11 +49,22 @@ MuonMultiplicity = np.array([])
 
 filename = config['corsika_sample']
 print(filename)
+
+nfiles = 3
+
+def calc_weight(inp = filename,numfiles = nfiles):
+    with pd.HDFStore(inp, "r") as hdffile:
+        weighter = simweights.CorsikaWeighter(hdffile, nfiles=3)
+        flux = simweights.GaisserH4a()
+        weights = weighter.get_weights(flux)  
+    return weights
+
 if (path.exists(filename)):
     try:
+        GaisserH4a_weight = calc_weight()
         hdf=h5py.File(filename, 'r')
         
-        GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
+        #GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
         Zenith_Shower_Neutrino = np.append(Zenith_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_zenith')['value']))
         Flavour_Shower_Neutrino = np.append(Flavour_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_type')['value']))
         Energy_Shower_Neutrino = np.append(Energy_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_energy')['value']))
@@ -100,6 +113,7 @@ for angle in angles:
             Hist2D,edges=np.histogramdd(stackarray,bins=(mult_bins,E_nu_bins),weights=GaisserH4a_weight[ADmask])
             #Hist2D = Hist2D /np.sum(Hist2D)
             Hist2D = np.nan_to_num(Hist2D)
+            Hist2D = Hist2D.T
             filename = config['multi_base'] + 'Mult_Zen_' + str(np.around(angle,2)) + '_Depth_' + str(np.around(depth,2))+'.npy'
 
             print('Zen_'+str(angle)+'_Depth_'+str(depth)+' '+str(np.sum(Hist2D)))

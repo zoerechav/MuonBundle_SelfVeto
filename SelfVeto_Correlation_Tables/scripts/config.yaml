@@ -16,8 +16,8 @@ depths: "np.concatenate([np.linspace(1.40,2.0,2),np.linspace(2.1,2.5,2)])"
 
 mult_bins: "np.linspace(0,5,5+1)"
 ##Filepaths
-corsika_sample: '/data/user/zrechav/compiled_hdf5s/airshowered_corsika/Corsika_20904_new_sample.hdf5'
-gcd: '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
+corsika_sample: '/data/user/zrechav/airshowered_corsika/22803/merge_test/merge_test.hdf5'
+gcd: '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2020.Run134142.Pass2_V0.i3.gz'
 
 
 flavour_mask_NuE_path: '/data/user/zrechav/output_SelfVeto_Correlation_Tables/masked_pickles/Flavour_mask_NuE.npy'

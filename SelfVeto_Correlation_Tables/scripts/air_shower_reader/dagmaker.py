@@ -4,7 +4,7 @@ import glob
 import numpy as np
 #/data/sim/IceCube/2020/filtered/level2/CORSIKA-in-ice/20904/0000000-0000999/
 dataset = '22803'
-subdir = '0000000-0000999'
+subdir = '0006000-0006999'
 #short_subdir = '00000-00999'
 #tag = 'not_contained'
 def get_Grid_job(infile,filenum,outfile,gcd, nugen,muongun,corsika,burn):
@@ -21,7 +21,7 @@ def get_Grid_job(infile,filenum,outfile,gcd, nugen,muongun,corsika,burn):
     
 def get_Grid_jobs(input_path=None,output_path=None, gcd=None,nugen=1,muongun=0,corsika=0,burn=0,propagate=0):
     raw_infiles=sorted(glob.glob(input_path+ '/*.i3.zst'))[:nfiles]
-    infile_numbers = [infile.split('/')[-1].split('_')[-1].split('.')[2] for infile in raw_infiles]
+    infile_numbers = [infile.split('/')[-1].split('.')[2] for infile in raw_infiles]
     print(infile_numbers[0])
     lines = []
     for (infile, filenum) in zip(raw_infiles,infile_numbers):
@@ -39,16 +39,17 @@ muongun=0
 
 corsika=0
 burn =0
-nfiles=10
+nfiles=1000
 dag_lines = []
 if nugen ==1:
     gcd = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2020.Run134142.Pass2_V0.i3.gz'
-    #input_path = '/data/sim/IceCube/2023/filtered/level2/CORSIKA-in-ice/'+dataset +'/' + subdir + '/'
+    input_path = '/data/sim/IceCube/2023/generated/CORSIKA-in-ice/'+dataset +'/' + subdir + '/generated/'
     #input_path = '/data/user/zrechav/propagated_corsika/20904/' + subdir + '/'
     #input_path = '/data/user/zrechav/propagated_corsika/22784/0000000-0000999/'
-    input_path = '/data/user/zrechav/propagated_corsika/L2_' + dataset + '/' + subdir + '/'
+    #input_path = '/data/user/zrechav/propagated_corsika/' + dataset + '/' + subdir + '/'
     #input_path = '/data/user/zrechav/test_corsika/'
-    output_path = '/data/user/zrechav/airshowered_corsika/L2_22803/' + subdir + '/'
+    #input_path = '/data/sim/IceCube/2023/generated/CORSIKA-in-ice/' + dataset + '/' + subdir + '/generated/'
+    output_path = '/data/user/zrechav/airshowered_corsika/22803/' + subdir + '/'
     dag_lines.extend(
     get_Grid_jobs(
         input_path=input_path,
@@ -58,7 +59,7 @@ if nugen ==1:
         muongun=0,corsika=0,propagate=0,burn=0
         )
     )
-outfile_name='/home/zrechav/SelfVeto_Correlation_Tables/scripts/air_shower_reader/dags/L2_' + dataset + '_' + subdir + '.dag'
+outfile_name='/home/zrechav/SelfVeto_Correlation_Tables/scripts/air_shower_reader/dags/' + dataset + '_' + subdir + '.dag'
 with open(outfile_name, 'w') as f:
     f.write('\n'.join(dag_lines))
 

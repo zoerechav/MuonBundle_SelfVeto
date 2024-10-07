@@ -21,12 +21,16 @@ import pandas as pd
 import yaml
 import argparse
 import os
+
+import simweights
  
 parser = argparse.ArgumentParser()
 
 
 with open('/home/zrechav/SelfVeto_Correlation_Tables/scripts/config.yaml', 'r') as yaml_file:
     config = yaml.safe_load(yaml_file)
+    
+
 
 
 E_nu_bins=eval(config['E_nu_bins'])
@@ -47,11 +51,24 @@ MuonMultiplicity = np.array([])
 
 filename = config['corsika_sample']
 print(filename)
+
+nfiles = 3
+
+def calc_weight(inp = filename,numfiles = nfiles):
+    with pd.HDFStore(inp, "r") as hdffile:
+        weighter = simweights.CorsikaWeighter(hdffile, nfiles=3)
+        flux = simweights.GaisserH4a()
+        weights = weighter.get_weights(flux)  
+    return weights
+
 if (path.exists(filename)):
+    
     try:
+        #GaisserH4a_weight = np.append(GaisserH4a_weight, np.asarray(calc_weight()))
+        GaisserH4a_weight = calc_weight()
         hdf=h5py.File(filename, 'r')
         
-        GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
+        #GaisserH4a_weight = np.append(GaisserH4a_weight,np.asarray(hdf.get('GaisserH4a_weight')['item']))
         Zenith_Shower_Neutrino = np.append(Zenith_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_zenith')['value']))
         Flavour_Shower_Neutrino = np.append(Flavour_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_type')['value']))
         Energy_Shower_Neutrino = np.append(Energy_Shower_Neutrino,np.asarray(hdf.get('shower_neutrino_energy')['value']))
@@ -96,10 +113,13 @@ for flavour in flavours:
             ADmask=np.logical_and.reduce((angle_mask,depth_mask,flav_mask))
 
             if np.sum(ADmask)>0:
+                print(MuonMultiplicity[ADmask])
                 stackarray=np.stack((MuonMultiplicity[ADmask],Energy_Shower_Neutrino[ADmask]),axis=1)
                 Hist2D,edges=np.histogramdd(stackarray,bins=(mult_bins,E_nu_bins),weights=GaisserH4a_weight[ADmask])
                 #Hist2D = Hist2D /np.sum(Hist2D)
                 Hist2D = np.nan_to_num(Hist2D)
+                Hist2D = Hist2D.T
+                print(Hist2D)
                 filename = config['multi_base'] +flavour + '_Mult_Zen_' + str(np.around(angle,2)) + '_Depth_' + str(np.around(depth,2))+'.npy'
 
                 print('Zen_'+str(angle)+'_Depth_'+str(depth)+' '+str(np.sum(Hist2D)))
