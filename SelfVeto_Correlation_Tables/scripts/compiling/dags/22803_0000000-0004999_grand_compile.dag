@@ -1,3 +1,0 @@
-JOB grand_compile /home/zrechav/SelfVeto_Correlation_Tables/scripts/compiling/grand_compile.sub
-VARS grand_compile infile="/data/user/zrechav/compiled_hdf5s/airshowered_corsika/22803/*.hdf5" outfile="/data/user/zrechav/compiled_hdf5s/airshowered_corsika/22803/correlation/22803_0000000-0005999_correlated.hdf5" 
-Retry grand_compile 2
