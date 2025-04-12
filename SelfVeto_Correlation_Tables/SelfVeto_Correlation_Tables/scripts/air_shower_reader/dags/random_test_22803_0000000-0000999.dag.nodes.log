@@ -1,0 +1,270 @@
+000 (225285145.000.000) 2025-02-12 07:40:41 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000000
+...
+000 (225285146.000.000) 2025-02-12 07:40:42 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000001
+...
+000 (225285163.000.000) 2025-02-12 07:40:44 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000002
+...
+000 (225285167.000.000) 2025-02-12 07:40:45 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000003
+...
+000 (225285168.000.000) 2025-02-12 07:40:46 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000004
+...
+000 (225285191.000.000) 2025-02-12 07:40:52 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000005
+...
+000 (225285192.000.000) 2025-02-12 07:40:54 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000006
+...
+000 (225285193.000.000) 2025-02-12 07:40:55 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000007
+...
+000 (225285204.000.000) 2025-02-12 07:40:56 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000008
+...
+000 (225285215.000.000) 2025-02-12 07:40:58 Job submitted from host: <10.128.11.86:25462?addrs=10.128.11.86-25462&alias=submit-1.icecube.wisc.edu>
+    DAG Node: propogate_000009
+...
+001 (225285145.000.000) 2025-02-12 08:16:37 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+005 (225285145.000.000) 2025-02-12 08:21:03 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:11, Sys 0 00:00:09  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:11, Sys 0 00:00:09  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	34112384  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	34112384  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :                 1         1 
+	   Disk (KB)             :    33377  1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :      175     8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:21:02Z.
+...
+001 (225285146.000.000) 2025-02-12 08:21:04 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+005 (225285146.000.000) 2025-02-12 08:25:19 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:06, Sys 0 00:00:08  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:06, Sys 0 00:00:08  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	34054688  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	34054688  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :        0        1         1 
+	   Disk (KB)             :    33328  1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :      188     8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:25:19Z.
+...
+001 (225285163.000.000) 2025-02-12 08:25:20 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+005 (225285163.000.000) 2025-02-12 08:29:34 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:05, Sys 0 00:00:07  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:05, Sys 0 00:00:07  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	33924456  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	33924456  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33201     1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   188        8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:29:34Z.
+...
+001 (225285167.000.000) 2025-02-12 08:29:35 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+005 (225285167.000.000) 2025-02-12 08:33:45 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:01, Sys 0 00:00:08  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:01, Sys 0 00:00:08  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	33734052  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	33734052  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33015     1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   193        8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:33:44Z.
+...
+001 (225285168.000.000) 2025-02-12 08:33:45 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+001 (225285191.000.000) 2025-02-12 08:38:05 Job executing on host: <10.128.11.116:51714?addrs=10.128.11.116-51714&alias=n-56.icecube.wisc.edu>
+...
+005 (225285168.000.000) 2025-02-12 08:38:08 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:14, Sys 0 00:00:08  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:14, Sys 0 00:00:08  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	34161760  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	34161760  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33433     1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   189        8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:38:08Z.
+...
+001 (225285192.000.000) 2025-02-12 08:39:06 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+005 (225285192.000.000) 2025-02-12 08:43:15 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:00, Sys 0 00:00:08  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:00, Sys 0 00:00:08  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	33974508  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	33974508  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33250     1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   187        8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:43:15Z.
+...
+001 (225285193.000.000) 2025-02-12 08:43:16 Job executing on host: <10.128.10.185:38851?addrs=10.128.10.185-38851&alias=gtx-41.icecube.wisc.edu>
+...
+005 (225285191.000.000) 2025-02-12 08:43:29 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:03:50, Sys 0 00:00:06  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:03:50, Sys 0 00:00:06  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	34079736  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	34079736  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33350     1000000   1277621 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   198        8000      8000 
+
+	Job terminated of its own accord at 2025-02-12T14:43:29Z.
+...
+001 (225285204.000.000) 2025-02-12 08:43:29 Job executing on host: <10.128.11.116:51714?addrs=10.128.11.116-51714&alias=n-56.icecube.wisc.edu>
+...
+005 (225285204.000.000) 2025-02-12 08:47:28 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:03:50, Sys 0 00:00:06  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:03:50, Sys 0 00:00:06  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	34105448  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	34105448  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :        0        1         1 
+	   Disk (KB)             :    33375  1000000   1277621 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :      193     8000      8000 
+
+	Job terminated of its own accord at 2025-02-12T14:47:27Z.
+...
+001 (225285215.000.000) 2025-02-12 08:47:28 Job executing on host: <10.128.11.116:51714?addrs=10.128.11.116-51714&alias=n-56.icecube.wisc.edu>
+...
+005 (225285193.000.000) 2025-02-12 08:47:37 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:04:13, Sys 0 00:00:08  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:04:13, Sys 0 00:00:08  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	33911852  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	33911852  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33189     1000000   1581052 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   189        8000      8064 
+
+	Job terminated of its own accord at 2025-02-12T14:47:37Z.
+...
+005 (225285215.000.000) 2025-02-12 08:51:23 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:03:46, Sys 0 00:00:06  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:03:46, Sys 0 00:00:06  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	34098680  -  Run Bytes Sent By Job
+	423  -  Run Bytes Received By Job
+	34098680  -  Total Bytes Sent By Job
+	423  -  Total Bytes Received By Job
+	Partitionable Resources :    Usage  Request Allocated 
+	   admin_mutex_1         :                           0 
+	   admin_mutex_2         :                           0 
+	   admin_mutex_3         :                           0 
+	   Cpus                  :     1.00        1         1 
+	   Disk (KB)             : 33369     1000000   1277621 
+	   GPUs                  :                           0 
+	   machine_token         :                           0 
+	   Memory (MB)           :   197        8000      8000 
+
+	Job terminated of its own accord at 2025-02-12T14:51:23Z.
+...

@@ -1,5 +1,5 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/icetray-start
-#METAPROJECT /data/user/mhuennefeld/software/icecube/py3-v4.1.0/combo_V01-00-00/build
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.3.0/icetray-start
+#METAPROJECT icetray/v1.9.2
 from __future__ import division
 import click
 import yaml
@@ -157,6 +157,7 @@ def main(cfg, run_number, scratch):
         random_service=random_services[0],
         **cfg['veto_muon_injection_config']
     )
+    ##In Vedant's code, this cut removes events that were sampled using single power law or default power law --> I shouldn't need this
     def uncorr_cut(frame):
         if frame['MCVetoMuonInjectionInfo']['EnergySample']==False:
             click.echo('Uncorrelated Events')

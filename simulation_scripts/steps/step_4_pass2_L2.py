@@ -59,6 +59,20 @@ def main(cfg, run_number, scratch):
     tray.AddModule('I3Reader',
                    'i3 reader',
                    FilenameList=[cfg['gcd_pass2'], infile])
+    
+    ##ADDITION 9 April 2025
+    def shim_bad_doms(frame):
+        if "IceTopBadTanks" not in frame:
+            frame["IceTopBadTanks"] = dataclasses.I3VectorTankKey()
+        if "IceTopBadDOMs" not in frame:
+            frame["IceTopBadDOMs"] = dataclasses.I3VectorOMKey()
+        # always add an empty L2BadDOMs list for onlineL2
+        frame["L2BadDOMs"] = dataclasses.I3VectorOMKey()
+
+    # If you're GCD file doesn't have bad dom lists...you must shim it
+    tray.AddModule(shim_bad_doms, "Base_shim_icetopbads",
+                   Streams=[icetray.I3Frame.DetectorStatus])
+    
 
     tray.AddSegment(OfflineFilter,
                     "OfflineFilter",

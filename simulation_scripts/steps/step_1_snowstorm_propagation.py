@@ -1,16 +1,9 @@
-#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.1.0/icetray-start
-#METAPROJECT /data/user/mhuennefeld/software/icecube/py3-v4.1.0/combo_V01-00-00/build
+#!/bin/sh /cvmfs/icecube.opensciencegrid.org/py3-v4.3.0/icetray-start
+#METAPROJECT icetray/v1.9.2
 
-""" Run Snowstorm Propagation
-
-Adopted from:
-        https://code.icecube.wisc.edu/projects/icecube/browser/IceCube/
-        meta-projects/combo/stable/simprod-scripts/resources/scripts/
-        SnowSuite/3-Snowstorm.py
-
-# Copyright (c) 2019
-# Jakob van Santen <jakob.van.santen@desy.de>
-# and the IceCube Collaboration <http://www.icecube.wisc.edu>
+# Copyright (c) 2019 Jakob van Santen <jakob.van.santen@desy.de>
+# Copyright (c) 2019 the IceCube Collaboration <http://www.icecube.wisc.edu>
+# SPDX-License-Identifier: ISC
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -23,33 +16,68 @@ Adopted from:
 # WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
 # OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-"""
+#
+# $Id$
+#
+# @file hobo-multisim.py
+# @version $Revision$
+# @date $Date$
+# @author Jakob van Santen
+
+# Benjamin Smithers  benjamin.smithers@mavs.uta.edu
+# Erik Ganster erik.ganster@rwth-aachen.de
+
+
+
+
+# import click
+# import yaml
+# import numpy as np
+# import time
+# import itertools
+# import tempfile
+
+# from I3Tray import I3Tray
+# from icecube import icetray, dataclasses, dataio, phys_services, clsim
+# from icecube.clsim.traysegments.common import \
+#     setupPropagators, setupDetector, configureOpenCLDevices
+# from icecube.clsim.traysegments.I3CLSimMakePhotons import \
+#     I3CLSimMakePhotonsWithServer
+# from icecube.ice_models import icewave
+# from icecube.ice_models import angsens_unified
+# from icecube.snowstorm import \
+#     Perturber, MultivariateNormal, DeltaDistribution, UniformDistribution
+# from icecube.snowstorm import all_parametrizations
+
+# from utils import create_random_services, get_run_folder
+# from resources import snowstorm_perturbers
 
 import os
 import sys
-import click
-import yaml
-import numpy as np
-import time
 import copy
-import itertools
-import tempfile
+import click
+import itertools # scan through frames
+import tempfile # temporary output files
+import json # save summary file
+import numpy as np
+import yaml # read Snowstorm config
+import time
 
-from I3Tray import I3Tray
-from icecube import icetray, dataclasses, dataio, phys_services, clsim
-from icecube.clsim.traysegments.common import \
-    setupPropagators, setupDetector, configureOpenCLDevices
-from icecube.clsim.traysegments.I3CLSimMakePhotons import \
-    I3CLSimMakePhotonsWithServer
+from typing import Any
+
+from icecube import icetray, dataclasses, dataio, clsim, sim_services, phys_services
+from icecube import polyplopia
+from icecube.icetray import I3Tray
+from icecube.clsim.traysegments.common import setupPropagators, setupDetector, configureOpenCLDevices
+from icecube.clsim.traysegments.I3CLSimMakePhotons import I3CLSimMakePhotonsWithServer
+
 from icecube.ice_models import icewave
 from icecube.ice_models import angsens_unified
-from icecube.snowstorm import \
-    Perturber, MultivariateNormal, DeltaDistribution, UniformDistribution
-from icecube.snowstorm import all_parametrizations
-
+from icecube.snowstorm import Perturber, MultivariateNormal, DeltaDistribution, UniformDistribution
+from icecube.snowstorm import all_parametrizations # Snowstorm parametrizations
+#from icecube.phys_services import I3MTRandomService
 from utils import create_random_services, get_run_folder
 from resources import snowstorm_perturbers
-
 
 # ----------------
 # Helper Functions
@@ -60,12 +88,10 @@ class FrameSequenceReader(icetray.I3Module):
     making a persistent I3Reader.
     """
     def __init__(self, ctx):
-        super(FrameSequenceReader, self).__init__(ctx)
+        super().__init__(ctx)
         self.AddParameter("Sequence", "Iterable of frames to emit", None)
-
     def Configure(self):
         self._frames = self.GetParameter("Sequence")
-
     def Process(self):
         # this can run into issues if it's the last one
         try:
@@ -83,13 +109,11 @@ class Bumper(icetray.I3Module):
     Stop the tray after N Q-frames
     """
     def __init__(self, ctx):
-        super(Bumper, self).__init__(ctx)
+        super().__init__(ctx)
         self.AddParameter("NumFrames", "", 100)
-
     def Configure(self):
         self._numframes = self.GetParameter("NumFrames")
         self._count = 0
-
     def DAQ(self, frame):
         self._count += 1
         if self._count >= self._numframes:
@@ -104,13 +128,11 @@ class EnsureSFrame(icetray.I3Module):
     Inject an S frame if none present, and ensure that M frames come after S
     """
     def __init__(self, ctx):
-        super(EnsureSFrame, self).__init__(ctx)
+        super().__init__(ctx)
         self.AddParameter("Enable", "", True)
-
     def Configure(self):
         self._disabled = not self.GetParameter("Enable")
         self._mframes = []
-
     def Process(self):
         frame = self.PopFrame()
         if self._disabled:
@@ -140,20 +162,20 @@ class EnsureSFrame(icetray.I3Module):
 class GatherStatistics(icetray.I3Module):
     """Mimick the summary stage of I3CLSimModule::Finish()"""
     def Finish(self):
-        if 'I3SummaryService' not in self.context:
+        if "I3SummaryService" not in self.context:
             return
         summary = self.context['I3SummaryService']
         server = self.context['CLSimServer']
+
         if "TotalNumGeneratedHits" not in summary.keys():
             summary["TotalNumGeneratedHits"] = 0
         for k, v in summary.items():
-            if (k.startswith("I3PhotonToMCPEConverter") and
-                    k.endswith("NumGeneratedHits")):
+            if k.startswith("I3PhotonToMCPEConverter") and k.endswith("NumGeneratedHits"):
                 summary["TotalNumGeneratedHits"] += v
                 summary.pop(k)
+
         for k, v in server.GetStatistics().items():
-            if k in summary and (k.startswith('Total') or
-                                 k.startswith('Num')):
+            if k in summary and (k.startswith('Total') or k.startswith('Num')):
                 summary[k] += v
             else:
                 summary[k] = v
@@ -183,6 +205,7 @@ def run_snowstorm_propagation(cfg, infile, outfile):
     # --------
     # Settings
     # --------
+
     default_args = {
 
         # required
@@ -206,7 +229,7 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         'UnWeightedPhotonsScalingFactor': None,
         'UseGeant4': False,
         'ParticleHistory': True,
-        'ParticleHistoryGranularity': 1*icetray.I3Units.m,
+        'ParticleHistoryGranularity': 20*icetray.I3Units.m,
         'CrossoverEnergyEM': None,
         'CrossoverEnergyHadron': None,
         'UseCascadeExtension': True,
@@ -219,7 +242,8 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         'CableOrientation': None,
         'OverrideApproximateNumberOfWorkItems': None,
         'IgnoreSubdetectors': ["IceTop"],
-        'ExtraArgumentsToI3CLSimClientModule': dict(),
+        'ExtraArgumentsToI3PhotonPropagationClientModule': dict(),
+        #'ExtraArgumentsToI3CLSimClientModule': dict(),
     }
 
     # overwrite default settings
@@ -235,8 +259,8 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         os.path.expandvars(snowstorm_config["HoleIceParameterization"])
 
     # set units to meter
-    cfg['ParticleHistoryGranularity'] *= icetray.I3Units.m
-    cfg['DOMRadius'] *= icetray.I3Units.m
+    #cfg['ParticleHistoryGranularity'] *= icetray.I3Units.m
+    #cfg['DOMRadius'] *= icetray.I3Units.m
 
     # Print out most important settings
     click.echo('\n---------------')
@@ -252,14 +276,16 @@ def run_snowstorm_propagation(cfg, infile, outfile):
 
     # get random service
     random_services, _ = create_random_services(
-        dataset_number=cfg['dataset_number'],
-        run_number=cfg['run_number'],
-        seed=cfg['seed'],
-        n_services=1,
-        use_gslrng=cfg['random_service_use_gslrng'])
+       dataset_number=cfg['dataset_number'],
+       run_number=cfg['run_number'],
+       seed=cfg['seed'],
+       n_services=1,
+       use_gslrng=cfg['random_service_use_gslrng'])
 
     random_service = random_services[0]
-
+    #random_service = phys_services.I3MTRandomService(cfg['seed'])
+    print(random_service)
+    print(cfg['seed'])
     """
     Setup and run Snowstorm (aka MultiSim) by running a series of short
     trays, each with a different ice model. This works by front-loading as much
@@ -284,7 +310,7 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         CrossoverEnergyEM=cfg['CrossoverEnergyEM'],
         CrossoverEnergyHadron=cfg['CrossoverEnergyHadron'],
         UseCascadeExtension=cfg['UseCascadeExtension'],
-        StopDetectedPhotons=cfg['StopDetectedPhotons'],
+        #StopDetectedPhotons=cfg['StopDetectedPhotons'],
         DOMOversizeFactor=cfg['DOMOversizeFactor'],
         UnshadowedFraction=cfg['UnshadowedFraction'],
         HoleIceParameterization=hole_ice_parameterization,
@@ -426,28 +452,30 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         tray.Add(Bumper, NumFrames=cfg['NumEventsPerModel'])
 
         # initialize CLSim server and setup the propagators
-        server_location = tempfile.mkstemp(prefix='clsim-server-')[1]
-        address = 'ipc://'+server_location
-        converters = setupPropagators(
-            random_service, config,
+        converters = setupPropagators(random_service, config,
             UseGPUs=cfg['UseGPUs'],
             UseCPUs=not cfg['UseGPUs'],
-            # UseCPUs=cfg['UseGPUs'],
             OverrideApproximateNumberOfWorkItems=cfg[
                                     'OverrideApproximateNumberOfWorkItems'],
             DoNotParallelize=cfg['DoNotParallelize'],
-            UseOnlyDeviceNumber=cfg['UseOnlyDeviceNumber']
+            UseOnlyDeviceNumber=cfg['UseOnlyDeviceNumber'],
+            StopDetectedPhotons=cfg['StopDetectedPhotons']
         )
-        server = clsim.I3CLSimServer(
-            address, clsim.I3CLSimStepToPhotonConverterSeries(converters))
+       
+        server = sim_services.I3PhotonPropagationServer("tcp://127.0.0.1:*", sim_services.I3StepToPhotonConverterSeries(converters))
+        server_location = server.GetAddress()
+        print(server_location)
+
+    # stash server instance in the context to keep it alive
+    #tray.context['CLSimServer'] = server
 
         # stash server instance in the context to keep it alive
         tray.context['CLSimServer'] = server
 
         # recycle StepGenerator to prevent repeated, expensive initialization
-        if 'StepGenerator' in cfg['ExtraArgumentsToI3CLSimClientModule']:
+        if 'StepGenerator' in cfg['ExtraArgumentsToI3PhotonPropagationClientModule']:
             stepGenerator = \
-                cfg['ExtraArgumentsToI3CLSimClientModule']['StepGenerator']
+                cfg['ExtraArgumentsToI3PhotonPropagationClientModule']['StepGenerator']
             stepGenerator.SetMediumProperties(config['MediumProperties'])
             stepGenerator.SetWlenBias(config['WavelengthGenerationBias'])
 
@@ -455,7 +483,7 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         module_config = \
             tray.Add(
                 I3CLSimMakePhotonsWithServer,
-                ServerAddress=address,
+                ServerAddress=server_location,
                 DetectorSettings=config,
                 MCTreeName=cfg['MCTreeName'],
                 OutputMCTreeName=cfg['OutputMCTreeName'],
@@ -466,18 +494,18 @@ def run_snowstorm_propagation(cfg, infile, outfile):
                 RandomService=random_service,
                 ParticleHistory=cfg['ParticleHistory'],
                 ParticleHistoryGranularity=cfg['ParticleHistoryGranularity'],
-                ExtraArgumentsToI3CLSimClientModule=cfg[
-                                        'ExtraArgumentsToI3CLSimClientModule'],
+                ExtraArgumentsToI3PhotonPropagationClientModule=cfg['ExtraArgumentsToI3PhotonPropagationClientModule']
             )
 
         # recycle StepGenerator to prevent repeated, expensive initialization
-        cfg['ExtraArgumentsToI3CLSimClientModule']['StepGenerator'] = \
+        cfg['ExtraArgumentsToI3PhotonPropagationClientModule']['StepGenerator'] = \
             module_config['StepGenerator']
 
         # write to temporary output file
         intermediateOutputFiles.append(
             tempfile.mkstemp(suffix=(outfile.split("/"))[-1])[1])
         print('temp outfile ', outfile,)
+        
         tray.Add("I3Writer",
                  Filename=intermediateOutputFiles[-1],
                  DropOrphanStreams=[icetray.I3Frame.TrayInfo],
@@ -512,7 +540,8 @@ def run_snowstorm_propagation(cfg, infile, outfile):
         else:
             summary["TotalCLSimTrayTime"] += time_CLSimTray
         # remove the temp file made by the server location thingy
-        os.unlink(server_location)
+        #os.unlink(server_location)
+        print('dont unlink instead')
 
         # increase model counter
         model_counter += 1
@@ -578,6 +607,7 @@ def run_snowstorm_propagation(cfg, infile, outfile):
 @click.argument('cfg', type=click.Path(exists=True))
 @click.argument('run_number', type=int)
 @click.option('--scratch/--no-scratch', default=True)
+
 def main(cfg, run_number, scratch):
     with open(cfg, 'r') as stream:
         cfg = yaml.full_load(stream)

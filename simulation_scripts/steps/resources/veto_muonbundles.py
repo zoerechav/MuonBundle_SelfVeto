@@ -4,148 +4,166 @@ np.set_printoptions(formatter={'all':lambda x: str(x)})
 import click
 import os
 from I3Tray import I3Tray
-from icecube import icetray, dataclasses,MuonGun, dataio, simclasses
-from icecube.phys_services import I3Calculator
-
+from icecube import icetray, dataclasses,MuonGun, dataio, simclasses, phys_services
+from icecube.phys_services import I3Calculator, ExtrudedPolygon
 import sys, math
-
 from icecube.dataclasses import I3Double, I3Particle, I3Direction, I3Position, I3VectorI3Particle, I3Constants, I3VectorOMKey
 from icecube.simclasses import I3MMCTrack
-
-
 import collections
-
 from icecube.hdfwriter import I3HDFTableService, I3HDFWriter
-
 import time
 import matplotlib.pyplot as plt
-
-
 from ic3_labels.labels.utils import muon as mu_utils
-from ic3_labels.labels.utils import detector
-from ic3_labels.labels.utils import geometry
+from ic3_labels.labels.utils import detector, geometry
 import matplotlib.path as mpltPath
 from scipy.spatial import ConvexHull
-low_angles= np.linspace(0,0.5,13)
-high_angles=np.linspace(0.5,1,13)
-# new_low_angles=np.delete(low_angles,0) 
-angles_space=np.concatenate( (low_angles,high_angles) )
-
-depth_space = np.linspace(1.5,2.5,26)
-flav_dict={}# include antiparticles once you've done
-
-flav_dict=    {12:'NuE',-12:'NuE',14:'NuMu',-14:'NuMu',16:'NuTau',-16:'NuTau'}
-deep=2.06
-
-def select(geometry):
-        r"""Select IceCube DOMs.
-        Select all DOMs with an OM type `IceCube` from the given
-        detector geometry and sort the selected DOMs per string in
-        ascending depth.
-        Parameters
-        ----------
-        geometry : I3OMGeoMap or dict(OMKey, tuple(I3OMGeo, ...))
-            Detector geometry
-        Returns
-        -------
-        dict(int, list(tuple(OMKey, I3OMGeo)))
-            Mapping of string numbers to sequences of IceCube DOMs
-            arranged in ascending depth.
-        """
-        strings = collections.defaultdict(list)
-        # print (type(geometry))
-        for omkey, omgeo in geometry.items():
-            if np.iterable(omgeo):
-                omgeo = omgeo[0]
-
-            if omgeo.omtype == dataclasses.I3OMGeo.IceCube:
-                strings[omkey.string].append((omkey, omgeo))
-
-        for doms in strings.values():
-            doms.sort(
-                key=lambda omgeo: omgeo[1].position.z, reverse=True)
+import yaml
+import traceback
+import pickle
 
 
-        return strings
-def boundaries(geometry):
-#         Side and top boundaries
-#         Find the veto's side and top boundaries.
-#         Parameters
-#         ----------
-#         geometry : I3OMGeoMap or dict(OMKey, tuple(I3OMGeo, ...))
-#             IC79 or IC86 detector geometry
-#         Returns
-
-#         -------
-#         sides : set(int)
-#             Sequence of string numbers of the outermost strings
-#         top : float
-#             Depth in detector coordinates of the first DOM on the
-#             deepest non-DeepCore string minus the thickness given
-#             by `top_layer`
-        
-        top_layer=90.*icetray.I3Units.m,
-        dust_layer=(-220.*icetray.I3Units.m,-100.*icetray.I3Units.m)
-        strings = select(geometry)
-        top = min(strings[s][0][1].position.z for s in strings if s <= 78)
-        dmax = 160.*icetray.I3Units.m
-
-        string_pos=[]
-
-        for string in strings:
-            pos = strings[string][0][1].position
-            string_pos.append([pos.x,pos.y,pos.z])
-            
-#             for other in strings:
-#                 if other != string:
-#                     opos = strings[other][0][1].position
-
-#                     # The defined maximum inter-string spacing of 160m between
-#                     # neighboring DOM assures the "missing" strings of the full
-#                     # hexagon are treated correctly.
-#                     if np.hypot(pos.x - opos.x, pos.y - opos.y) < dmax:
-#                         neighbors[string] += 1
-
-        manual_sides = [9,10,11,12,20,29,39,49,58,66,65,64,71,70,
-                       69,61,52,42,32,23,15,8] 
-        boundary_x=[]
-        boundary_y=[]
-        
-        for side_string in manual_sides:
-            pos=strings[side_string][0][1].position
-            boundary_x.append(pos.x)
-            boundary_y.append(pos.y)
-        boundary_x.append(boundary_x[0])
-        boundary_y.append(boundary_y[0])
-        return boundary_x,boundary_y
+with open('/home/zrechav/SelfVeto_Correlation_Tables/scripts/config.yaml', 'r') as yaml_file:
+    config = yaml.safe_load(yaml_file)
     
+gcd = config['gcd']
+
+angles_space = eval(config['angles'])
+nue_angles = eval(config['nue_angles'])
+numu_angles = eval(config['numu_angles'])
+depths = eval(config['depths'])
+flav_dict={}
+flav_dict=    {12:'NuE',-12:'NuE',14:'NuMu',-14:'NuMu',16:'NuTau',-16:'NuTau'}
+
+#angles_space=np.concatenate( (low_angles,high_angles) )
+#depth_space = np.linspace(1.5,2.5,26)
+
+#deep=2.06
+#######FITTING#######
+#Parameters:
+#    - x: Input data.
+#    - A: Amplitude.
+#    - mu: Mean in log-space.
+#    - sigma1: Spread below the peak.
+#    - sigma2: Spread above the peak.
+#    - p: Exponent for Gaussian terms.
+#    - q: Exponent for exponential modifier on the right side.
+
+def two_sided_log_gaussian(x, A, mu, sigma1, sigma2):
+    log_x = np.log(x)
+    return np.where(
+        log_x < mu,
+        A * np.exp(-0.5 * ((log_x - mu) / sigma1) ** 2),
+        A * np.exp(-0.5 * ((log_x - mu) / sigma2) ** 2)
+    )
+
+def modified_two_sided_log_gaussian(x, A, mu, sigma1, sigma2, p):
+    log_x = np.log(x)
+    return np.where(
+        log_x < mu,
+        A * np.exp(-0.5 * (np.abs((log_x - mu) / sigma1) ** p)),
+        A * np.exp(-0.5 * (np.abs((log_x - mu) / sigma2) ** p))
+    )
+
+def modified_two_sided_log_gaussian_exp(x, A, mu, sigma1, sigma2, p, q):
+    """
+    Modified two-sided log Gaussian with an exponential modifier on the right side.
+
+    """
+    log_x = np.log(x)
+    left_side = A * np.exp(-0.5 * (np.abs((log_x - mu) / sigma1) ** p))  # Left side Gaussian
+    right_side = A * np.exp(-0.5 * (np.abs((log_x - mu) / sigma2) ** p)) * np.exp(-q * (log_x - mu))  # Right side Gaussian + exponential
+    return np.where(log_x < mu, left_side, right_side)
+
+def get_info_backup(pickle):
+    bin_centers = None
+    params = None
+    fit = None
+    try:
+        best_function = pickle.get('best_function')  # Correct access
+
+        if best_function == 'mge':
+            bin_centers = pickle['mge']['bin_centers']
+            params = pickle['mge']['params']
+            fit = modified_two_sided_log_gaussian_exp(bin_centers, *params)
+        elif best_function == 'mg':
+            bin_centers = pickle['mg']['bin_centers']
+            params = pickle['mg']['params']
+            fit = modified_two_sided_log_gaussian(bin_centers, *params)
+        elif best_function == 'g':
+            bin_centers = pickle['g']['bin_centers']
+            params = pickle['g']['params']
+            fit = two_sided_log_gaussian(bin_centers, *params)
+    except Exception as e:  # Change 'error' to 'Exception'
+        print(e)
+    return bin_centers, fit, best_function
+
+def get_info(pickle):
+    bin_centers = None
+    params = None
+    fit = None
+    try:
+        best_function = pickle['best_function']['function']  # Use consistent access
+
+        if best_function == 'mge':
+            bin_centers = pickle['mge']['bin_centers']
+            params = pickle['mge']['params']
+            fit = modified_two_sided_log_gaussian_exp(bin_centers, *params)
+        elif best_function == 'mg':
+            bin_centers = pickle['mg']['bin_centers']
+            params = pickle['mg']['params']
+            fit = modified_two_sided_log_gaussian(bin_centers, *params)
+        elif best_function == 'g':
+            bin_centers = pickle['g']['bin_centers']
+            params = pickle['g']['params']
+            fit = two_sided_log_gaussian(bin_centers, *params)
+    except Exception as e:  # Change 'error' to 'Exception'
+        print(e)
+        return get_info_backup(pickle)
+    return bin_centers, fit, best_function
+
+def convert_pos_list(points):
+    """Convert an array like list of points to list of I3Position
+
+    Parameters
+    ----------
+    points : array_like
+        Points (x, y, z) given as array .
+        Shape: [n_points, 3]
+
+    Returns
+    -------
+    list[I3Position]
+        A list of I3Position.
+    """
+    return [dataclasses.I3Position(*point) for point in points]
+
+###surface for cylinder of partially contained boundary, with 50 meter padding on cylinder top as an extra bin --> this surface_det configuration is DIFFERENT from contained vs. partially contained id, independent of string geometry    
 def get_surface_det(gcdFile=None):
     
     from icecube import MuonGun
-    gcdFile=gcdFile
     bound_2D=[]
-    #MuonGunGCD = '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_AVG_55697-57531_PASS2_SPE_withScaledNoise.i3.gz'
-    MuonGunGCD= '/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2020.Run134142.Pass2_V0.i3.gz'
-    surface_det = MuonGun.ExtrudedPolygon.from_file(MuonGunGCD, padding=0)##Build Polygon from I3Geometry
-    #x=[(surface_det.x[i],surface_det.y[i])for i in range(len(surface_det.x))]###getting only x and y
-    f = dataio.I3File(MuonGunGCD)
-    omgeo = f.pop_frame(icetray.I3Frame.Geometry)['I3Geometry'].omgeo
-    surface_det_x,surface_det_y=boundaries(omgeo)
+    surface_det = MuonGun.Cylinder(1100,700)   
+    t = np.linspace(0, 2 * np.pi, 100)
+    surface_det_x = 700 * np.cos(t)
+    surface_det_y = 700 * np.sin(t)
     x=[(surface_det_x[i],surface_det_y[i])for i in range(len(surface_det_x))]
     bound_2D= mpltPath.Path(x)#Projection of detector on x,y plane
-    print(bound_2D)
     return bound_2D, surface_det
-
+    
 def boundary_check(particle1,gcdFile=None):
     ####checks if particle is inside the detector###
     gcdFile=gcdFile
     bound_2D,surface_det = get_surface_det(gcdFile=gcdFile)
+    cyl_top = 550.
+    cyl_bot = -500.
     inlimit = False  
-    if (((particle1.pos.z <=max(surface_det.z)) and (particle1.pos.z>=min(surface_det.z)))) and bound_2D.contains_points([(particle1.pos.x, particle1.pos.y)]):
-            inlimit=True
-            
-    #frame["In_Boundary"] = icetray.I3Bool(inlimit)
+    print(particle1.pos.z)
+    if (((particle1.pos.z <=cyl_top) and (particle1.pos.z>=cyl_bot))) and bound_2D.contains_points([(particle1.pos.x, particle1.pos.y)]):
+            inlimit=True            
     return inlimit
+
+bound_2D,surface_det = get_surface_det()
+
 def default_sampler( e_min=1e1, e_max=1e7, gamma=3,multiplicity=1):
         """Sample from Powerlaw Distribution
 
@@ -185,6 +203,7 @@ def default_sampler( e_min=1e1, e_max=1e7, gamma=3,multiplicity=1):
             radicant = (u * (e_max**(1. - gamma) - e_min**(1. - gamma))
                         + e_min**(1. - gamma))
             return radicant**(1. / (1. - gamma))
+        
 class InjectVetoMuons(icetray.I3ConditionalModule):
 
     """Class to inject an accompanying muon for a provided neutrino event
@@ -285,37 +304,70 @@ class InjectVetoMuons(icetray.I3ConditionalModule):
                 primary.pos = dataclasses.I3Position(x, y, z)
                 primary.dir = dataclasses.I3Direction(zenith, azimuth)
                 primary.time = t
-
+            
             # compute entry point
-            bound_2D,surface_det = get_surface_det(gcdFile='/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2020.Run134142.Pass2_V0.i3.gz')
-            min_z = np.min(surface_det.z)
-            max_z = np.max(surface_det.z)
-            my_hull = ConvexHull([  
-                [-447.739990234375, -113.12999725341797,min_z ],
-                [-211.35000610351562, -404.4800109863281, min_z],
-                [282.17999267578125, -325.739990234375, min_z],
-                [472.04998779296875, 127.9000015258789, min_z],
-                [303.4100036621094, 335.6400146484375, min_z],
-                [54.2599983215332, 292.9700012207031, min_z],
-                [-21.969999313354492, 393.239990234375, min_z],
-                [-268.8999938964844, 354.239990234375, min_z],
+            bound_2D,surface_det = get_surface_det(gcdFile=gcd)
+            
+            ##define dummy_hull to determine if an intersection exists or not. my_hull are xyz coordinates of cylinder with radius 700m 
+            min_z = -700.
+            max_z = 500.
+            my_hull = [
+                [-156.33, -682.32, min_z],
+                [67.87, -696.70,   min_z],
+                [292.74, -635.85,  min_z],
+                [458.33, -529.09,  min_z],
+                [589.68, -377.19,  min_z],
+                [679.40, -168.55,  min_z],
+                [699.65, 22.09,    min_z],
+                [675.64, 183.06,   min_z],
+                [593.65, 370.92,   min_z],
+                [469.41, 519.28,   min_z],
+                [338.72, 612.59,   min_z],
+                [127.48, 688.29,   min_z],
+                [-39.05, 698.91,   min_z],
+                [-253.58, 652.45,  min_z],
+                [-423.24, 557.56,  min_z],
+                [-558.08, 422.55,  min_z],
+                [-663.48, 223.16,  min_z],
+                [-699.97, 6.06,    min_z],
+                [-678.67, -171.48, min_z],
+                [-608.19, -346.57, min_z],
+                [-480.95, -508.61, min_z],
+                [-324.18, -620.41, min_z],
+    
+                [-156.33, -682.32, max_z],
+                [67.87, -696.70,   max_z],
+                [292.74, -635.85,  max_z],
+                [458.33, -529.09,  max_z],
+                [589.68, -377.19,  max_z],
+                [679.40, -168.55,  max_z],
+                [699.65, 22.09,    max_z],
+                [675.64, 183.06,   max_z],
+                [593.65, 370.92,   max_z],
+                [469.41, 519.28,   max_z],
+                [338.72, 612.59,   max_z],
+                [127.48, 688.29,   max_z],
+                [-39.05, 698.91,   max_z],
+                [-253.58, 652.45,  max_z],
+                [-423.24, 557.56,  max_z],
+                [-558.08, 422.55,  max_z],
+                [-663.48, 223.16,  max_z],
+                [-699.97, 6.06,    max_z],
+                [-678.67, -171.48, max_z],
+                [-608.19, -346.57, max_z],
+                [-480.95, -508.61, max_z],
+                [-324.18, -620.41, max_z],
+    
+                [-156.33, -682.32, max_z]
+    
+                    ]
+            the_hull = ExtrudedPolygon(convert_pos_list(my_hull))                               
+            dummy_intersections = mu_utils.get_muon_convex_hull_intersections(primary, convex_hull=the_hull)
 
-                [-447.739990234375, -113.12999725341797, min_z],
-                [-211.35000610351562, -404.4800109863281,max_z ],
-                [282.17999267578125, -325.739990234375, max_z],
-                [472.04998779296875, 127.9000015258789,max_z ],
-                [303.4100036621094, 335.6400146484375, max_z],
-                [54.2599983215332, 292.9700012207031, max_z],
-                [-21.969999313354492, 393.239990234375,max_z ],
-                [-268.8999938964844, 354.239990234375, max_z],
-
-                [-447.739990234375, -113.12999725341797,max_z ]
-                ])
-                                  
-#             intersection_ts = mu_utils.get_muon_convex_hull_intersections(
-#                 primary, convex_hull=detector.icecube_hull)
-            intersection_ts = mu_utils.get_muon_convex_hull_intersections(primary, convex_hull=my_hull)
-            if len(intersection_ts) == 0:
+            
+            intersections = surface_det.intersection(primary.pos,primary.dir)
+            
+            if len(dummy_intersections) == 0:
                 # particle did not hit convex hull, use closest approach
                 closest_position = I3Calculator.closest_approach_position(
                     primary, dataclasses.I3Position(0., 0., 0.))
@@ -324,13 +376,10 @@ class InjectVetoMuons(icetray.I3ConditionalModule):
                 print('no intersection')
             else:
                 print('intersection')
-                distance = min(intersection_ts)
+                distance = intersections.first
             print("my_hull calculation: ", distance)
-            # in order to not land exactly on the convex hull and potentially
-            # cause issues for label generation, we will walk back a little
-            # further for primary and muon injection
-            distance -= 1
             inj_pos = primary.pos + distance * primary.dir
+            print(inj_pos)
             inj_time = primary.time + distance / dataclasses.I3Constants.c
             inj_dir = dataclasses.I3Direction(primary.dir)
             global flavour
@@ -353,13 +402,8 @@ class InjectVetoMuons(icetray.I3ConditionalModule):
                 )
             except Exception as e:
                 print(e)
-                # energysample=False
-                # # inject new muon
-                # mc_tree, injection_info = self._create_mc_tree(
-                #     inj_pos=inj_pos,
-                #     inj_time=inj_time,
-                #     inj_dir=inj_dir,
-                # )
+                print(traceback.print_exc())
+                
 
             # copy frame
             frame_copy = icetray.I3Frame(frame)
@@ -437,70 +481,74 @@ class InjectVetoMuons(icetray.I3ConditionalModule):
         """
         from random import seed
         import random
-        mult_bins=np.linspace(0,100,100+1)
+        mult_bins=eval(config['mult_bins'])
         mult_bin_centers = np.sqrt(mult_bins[:-1] * mult_bins[1:])
-        bound_2D,surface_det = get_surface_det(gcdFile='/cvmfs/icecube.opensciencegrid.org/data/GCD/GeoCalibDetectorStatus_2020.Run134142.Pass2_V0.i3.gz')
-
-#         intersection=surface_det.intersection(primary.pos, primary.dir)#points of intersection
-#         print("surface_calculation: ", intersection.first)
-        min_z = np.min(surface_det.z)
-        max_z = np.max(surface_det.z)
-        my_hull = ConvexHull([  
-            [-447.739990234375, -113.12999725341797,min_z ],
-            [-211.35000610351562, -404.4800109863281, min_z],
-            [282.17999267578125, -325.739990234375, min_z],
-            [472.04998779296875, 127.9000015258789, min_z],
-            [303.4100036621094, 335.6400146484375, min_z],
-            [54.2599983215332, 292.9700012207031, min_z],
-            [-21.969999313354492, 393.239990234375, min_z],
-            [-268.8999938964844, 354.239990234375, min_z],
-
-            [-447.739990234375, -113.12999725341797, min_z],
-            [-211.35000610351562, -404.4800109863281,max_z ],
-            [282.17999267578125, -325.739990234375, max_z],
-            [472.04998779296875, 127.9000015258789,max_z ],
-            [303.4100036621094, 335.6400146484375, max_z],
-            [54.2599983215332, 292.9700012207031, max_z],
-            [-21.969999313354492, 393.239990234375,max_z ],
-            [-268.8999938964844, 354.239990234375, max_z],
-
-            [-447.739990234375, -113.12999725341797,max_z ]
-            ])
-
-#             intersection_ts = mu_utils.get_muon_convex_hull_intersections(
-#                 primary, convex_hull=detector.icecube_hull)
-        intersection = mu_utils.get_muon_convex_hull_intersections(primary,convex_hull=my_hull)
-    
-        print("surface_calculation: ", np.min(intersection))
+        bound_2D,surface_det = get_surface_det(gcdFile=gcd)
         
-        z_inter=primary.pos.z-np.min(intersection)*np.cos(primary.dir.zenith)
+        Hist2D = None
+
+
+        intersection = surface_det.intersection(primary.pos,primary.dir)
+        print("surface_calculation: ", (intersection.first))
+        
+        z_inter=primary.pos.z-intersection.first*np.cos(primary.dir.zenith)
         depth=1948.07-z_inter
+        print('depth ',depth)
         
-        depth=np.around(depth_space[np.digitize(depth/1000,depth_space)-1],decimals=2)
-        coszen=np.around(angles_space[np.digitize(np.cos(primary.dir.zenith),angles_space)-1],decimals=2)
-        E_nu_bins=np.logspace(1,7,10+1)
+        depth=np.around(depths[np.digitize(depth/1000,depths)-1],decimals=2)
+        coszen = None
+        if flavour == 'NuMu':
+            coszen=np.around(angles_space[np.digitize(np.cos(primary.dir.zenith),numu_angles)-1],
+                             decimals=2)
+            if coszen == 1.0:
+                coszen = 0.8
+        if flavour == 'NuE':
+            coszen=np.around(angles_space[np.digitize(np.cos(primary.dir.zenith),nue_angles)-1],
+                             decimals=2)
+            if coszen == 1.0:
+                coszen = 0.85
+        #coszen=np.around(angles_space[np.digitize(np.cos(primary.dir.zenith),angles_space)-1],decimals=2)
+        print('coszen ',coszen)
+        E_nu_bins=eval(config['E_nu_bins'])
+        print('E_nu_bins ', E_nu_bins)
+        print('depth in multiplicity',depth)
+        
+        #if depth == 1.6:
+        #    depth = 1.4
+        #if depth == 2.0:
+        #    depth == 2.1
         binnedsample=False
         
         try:
+            print('MultFile: ',
+                      '/data/user/zrechav/output_SelfVeto_Correlation_Tables/multiplicity_mapping/'
+                      +flavour+'_Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy')
             #sample multiplicity from pdf for specific flavour of neutrinos 
-            if os.path.exists('/data/user/vbasu/SelfVetoArrays/'+flavour+'_Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'):
-                Hist2D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy')
-                Hist2D = np.nan_to_num(Hist2D)
-                print('MultFile:','/data/user/vbasu/SelfVetoArrays/'+flavour+'_Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy')
-            #sample multiplicity from pdf for all neutrinos 
-            elif os.path.exists('/data/user/vbasu/SelfVetoArrays/Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'):
-                Hist2D=np.load('/data/user/vbasu/SelfVetoArrays/Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy')
-                print('MultFile:','/data/user/vbasu/SelfVetoArrays/Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy')
+            if os.path.exists('/data/user/zrechav/output_SelfVeto_Correlation_Tables/multiplicity_mapping/'
+                              +flavour+'_Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'):
+                Hist2D=np.load('/data/user/zrechav/output_SelfVeto_Correlation_Tables/multiplicity_mapping/'
+                               +flavour+'_Mult_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy')
+                #Hist2D = np.nan_to_num(Hist2D)
+                print('I the multiplicity file, exist')
+            
             Hist2D = np.nan_to_num(Hist2D)
             energy_index=np.digitize(primary.energy,E_nu_bins)
-            if len(energy_index) > len(E_nu_bins):
+            if energy_index == 6: ##no multiplicity statistics for highest energy bin, assume second high
+                energy_index = 5
+            print('mult energy index ', primary.energy, ' ',energy_index)
+            if (energy_index) > len(E_nu_bins):
                 print('length of energy index was larger than length of E_nu_bins')
                 #continue
-            print((primary.energy,E_nu_bins, energy_index))
-            Hist1D=Hist2D[:,energy_index]
+            
+            print('HIST2D ', Hist2D)
+            Hist1D = Hist2D[energy_index,:]
+            print('HIST1D ',Hist1D)
             Hist1D=Hist1D/np.sum(Hist1D)
             print(Hist1D)
+            print('length mult_bin centers ',len(mult_bin_centers))
+            print('length Hist1D ', len(Hist1D))
             multiplicity= np.random.choice(np.arange(len(mult_bin_centers)), 1, p=Hist1D)[0]
+            print('len multiplicity ', multiplicity)
             if multiplicity<1:
                 multiplicity=1
             binnedsample=True
@@ -518,110 +566,210 @@ class InjectVetoMuons(icetray.I3ConditionalModule):
         double
             The sampled energy
         """
-        E_nu_bins=np.logspace(1,7,10+1)
-        gridpts=np.logspace(-1,7,20)
-        index=(np.linspace(0,19,19+1,dtype=int))
+        flavor = None
+        if flavour == 'NuMu':
+            flavor = 'numu'
+        if flavour == 'NuE':
+            flavor = 'nue'
+        E_nu_bins=eval(config['E_nu_bins'])
         energy_index=np.digitize(neutrino_energy,E_nu_bins)-1
+        print('og energy index: ', energy_index)
+        
+        energy_index += 1 #off by one error
+        print('new energy index: ', energy_index)
+        depth_index=np.digitize(depth,depths)-1
+        depth_str = None
+        coszen_index=np.digitize(coszen,angles_space)
+        print(coszen)
         inj_muon_energies=[]
         if coszen<=0:
             print('CosZen <0')
             return inj_muon_energies,False
         coszen=angles_space[np.digitize(coszen,angles_space)]
-        depth=depth_space[np.digitize(depth,depth_space)-1]
+        depth=depths[np.digitize(depth,depths)-1]
         coszen=np.around(coszen,decimals=2)
         depth=np.around(depth,decimals=2)
+        print('energy ', neutrino_energy)
+        print('energy index ', energy_index)
+        print('depth ', depth, depth_index)
+        print('coszen ',coszen, coszen_index)
+        
+        if depth_index == 0:
+            depth_str = 'top'
+        if depth_index == 1:
+            depth_str = 'middle'
+        if depth_index == 2:
+            depth_str = 'middle'
+        if depth_index == 3:
+            depth_str = 'bottom'
+        if depth_index == 4:
+            depth_str = 'bottom'
+        print(depth_str)
         energysample=True
         print('Bundle Energy Sampler')
         try:
             if multiplicity==1:
-                filename='/data/user/vbasu/SelfVetoArrays/'+flavour+'_SingleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'
+                filename=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_one/muon1/{flavor}_one_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
                 print(filename)
-                Hist2D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_SingleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                Hist2D = np.nan_to_num(Hist2D)
-                weight_array=Hist2D[:,energy_index].T/np.sum(Hist2D[:,energy_index])
-                gridpts=np.logspace(-1,7,len(Hist2D))
-                index=(np.linspace(0,len(Hist2D)-1,len(Hist2D),dtype=int))
-                indexarray=np.arange(len(index)**2)
-                probarray=(weight_array).ravel()
-                print(probarray)
-                sample_indices = np.random.choice(len(probarray), 1, p=probarray)[0]
-                weight_index=np.unravel_index(sample_indices, (len(index)))
-
-                inj_muon_energies=[gridpts[weight_index]]
+                
+                with open(filename,'rb') as f:
+                    histogram = pickle.load(f)
+                bins,prob,function = get_info(histogram)
+                print('bins:',bins)
+                print('prob:',prob)
+                prob_norm = prob/np.sum(prob) ##decimal cleaning
+                sample_energy = (np.random.choice(bins,p=prob_norm))
+                ##optional, to know the probability of the sampled energy
+                index = np.argmin(np.abs(bins-sample_energy))
+                sample_prob = prob_norm[index]
+                inj_muon_energies=[sample_energy]
+                
             elif multiplicity==2:
-                filename='/data/user/vbasu/SelfVetoArrays/'+flavour+'_DoubleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'
-                if os.path.exists(filename):#Spline exists
-                    Hist3D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_DoubleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                else:#Spline does not exist, using raw histogram instead
-                    Hist3D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_Double_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                Hist3D = np.nan_to_num(Hist3D)
-                weight_array=Hist3D[:,:,energy_index].T/np.sum(Hist3D[:,:,energy_index])
-                gridpts=np.logspace(-1,7,len(Hist3D))
-                index=(np.linspace(0,len(Hist3D)-1,len(Hist3D),dtype=int))
-                indexarray=np.arange(len(index)**2)
-                probarray=(weight_array).ravel()
-                sample_indices = np.random.choice(len(probarray), 1, p=probarray)[0]
-                weight_index=np.unravel_index(sample_indices, (len(index), len(index)))
+                filename1=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_two/muon1/{flavor}_two_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename1)
                 
-                inj_muon_energies=[gridpts[weight_index[0]],gridpts[weight_index[1]]]
-            elif multiplicity==3:
-                filename='/data/user/vbasu/SelfVetoArrays/'+flavour+'_TripleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'
-                if os.path.exists(filename):#Spline exists
-                    Hist4D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_TripleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                else:#Spline does not exist, using raw histogram instead
-                    Hist4D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_Triple_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                Hist4D = np.nan_to_num(Hist4D)
-                weight_array=Hist4D[:,:,:,energy_index].T/np.sum(Hist4D[:,:,:,energy_index])
-                gridpts=np.logspace(-1,7,len(Hist4D))
-                index=(np.linspace(0,len(Hist4D)-1,len(Hist4D),dtype=int))
-                indexarray=np.arange(len(index)**3)
-                probarray=(weight_array).ravel()
-                sample_indices = np.random.choice(len(probarray), 1, p=probarray)[0]
-                weight_index=np.unravel_index(sample_indices, (len(index), len(index),len(index)))
+                with open(filename1,'rb') as f:
+                    histogram1 = pickle.load(f)
+                bins1,prob1,function1 = get_info(histogram1)
+                print('bins:',bins1)
+                print('prob:',prob1)
+                prob_norm1 = prob1/np.sum(prob1) ##decimal cleaning
+                sample_energy1 = (np.random.choice(bins1,p=prob_norm1))
+                ##optional, to know the probability of the sampled energy
+                index1 = np.argmin(np.abs(bins1-sample_energy1))
+                sample_prob1 = prob_norm1[index1]
+                #inj_muon_energies=[sample_energy]
+                filename2=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_two/muon2/{flavor}_two_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename2)
                 
-                inj_muon_energies=[gridpts[weight_index[0]],gridpts[weight_index[1]],gridpts[weight_index[2]]]
-            elif multiplicity>=4:
-                filename='/data/user/vbasu/SelfVetoArrays/'+flavour+'_QuadrupleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'
-                if os.path.exists(filename):#Spline exists
-                    Hist5D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_QuadrupleSpline_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                else:#Spline does not exist, using raw histogram instead
-                    Hist5D=np.load('/data/user/vbasu/SelfVetoArrays/Quadruple_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                Hist5D = np.nan_to_num(Hist5D)
-                weight_array=Hist5D[:,:,:,:,energy_index].T/np.sum(Hist5D[:,:,:,:,energy_index])
-                gridpts=np.logspace(-1,7,len(Hist5D))
-                index=(np.linspace(0,len(Hist5D)-1,len(Hist5D),dtype=int))
-                indexarray=np.arange(len(index)**5)
-                probarray=(weight_array).ravel()
-                sample_indices = np.random.choice(len(probarray), 1, p=probarray)[0]
-                weight_index=np.unravel_index(sample_indices, (len(index), len(index),len(index), len(index)))
+                with open(filename2,'rb') as f:
+                    histogram2 = pickle.load(f)
+                bins2,prob2,function2 = get_info(histogram2)
+                print('bins:',bins2)
+                print('prob:',prob2)
+                prob_norm2 = prob2/np.sum(prob2) ##decimal cleaning
+                sample_energy2 = (np.random.choice(bins2,p=prob_norm2))
+                ##optional, to know the probability of the sampled energy
+                index2 = np.argmin(np.abs(bins2-sample_energy2))
+                sample_prob2 = prob_norm2[index2]
+                
+                inj_muon_energies=[sample_energy1,sample_energy2]
 
-                inj_muon_energies=[gridpts[weight_index[0]],gridpts[weight_index[1]],gridpts[weight_index[2]],gridpts[weight_index[3]]]
+            elif multiplicity==3:
+                filename1=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_three/muon1/{flavor}_three_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename1)
+
+                with open(filename1,'rb') as f:
+                    histogram1 = pickle.load(f)
+                bins1,prob1,function1 = get_info(histogram1)
+                print('bins:',bins1)
+                print('prob:',prob1)
+                prob_norm1 = prob1/np.sum(prob1) ##decimal cleaning
+                sample_energy1 = (np.random.choice(bins1,p=prob_norm1))
+                ##optional, to know the probability of the sampled energy
+                index1 = np.argmin(np.abs(bins1-sample_energy1))
+                sample_prob1 = prob_norm1[index1]
+                #inj_muon_energies=[sample_energy]
+                filename2=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_three/muon2/{flavor}_three_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename2)
+                
+                with open(filename2,'rb') as f:
+                    histogram2 = pickle.load(f)
+                bins2,prob2,function2 = get_info(histogram2)
+                print('bins:',bins2)
+                print('prob:',prob2)
+                prob_norm2 = prob2/np.sum(prob2) ##decimal cleaning
+                sample_energy2 = (np.random.choice(bins2,p=prob_norm2))
+                ##optional, to know the probability of the sampled energy
+                index2 = np.argmin(np.abs(bins2-sample_energy2))
+                sample_prob2 = prob_norm2[index2]
+                #inj_muon_energies=[sample_energy]
+                filename3=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_three/muon3/{flavor}_three_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename3)
+                
+                with open(filename3,'rb') as f:
+                    histogram3 = pickle.load(f)
+                bins3,prob3,function3 = get_info(histogram3)
+                print('bins:',bins3)
+                print('prob:',prob3)
+                prob_norm3 = prob3/np.sum(prob3) ##decimal cleaning
+                sample_energy3 = (np.random.choice(bins3,p=prob_norm3))
+                ##optional, to know the probability of the sampled energy
+                index3 = np.argmin(np.abs(bins3-sample_energy3))
+                sample_prob3 = prob_norm3[index3]
+                
+                
+                inj_muon_energies=[sample_energy1,sample_energy2,sample_energy3]
+               
         
+
+            elif multiplicity>=4:
+                filename1=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_four/muon1/{flavor}_four_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename1)
+
+                with open(filename1,'rb') as f:
+                    histogram1 = pickle.load(f)
+                bins1,prob1,function1 = get_info(histogram1)
+                print('bins:',bins1)
+                print('prob:',prob1)
+                prob_norm1 = prob1/np.sum(prob1) ##decimal cleaning
+                sample_energy1 = (np.random.choice(bins1,p=prob_norm1))
+                ##optional, to know the probability of the sampled energy
+                index1 = np.argmin(np.abs(bins1-sample_energy1))
+                sample_prob1 = prob_norm1[index1]
+                #inj_muon_energies=[sample_energy]
+                filename2=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_four/muon2/{flavor}_four_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename2)
+                
+                with open(filename2,'rb') as f:
+                    histogram2 = pickle.load(f)
+                bins2,prob2,function2 = get_info(histogram2)
+                print('bins:',bins2)
+                print('prob:',prob2)
+                prob_norm2 = prob2/np.sum(prob2) ##decimal cleaning
+                sample_energy2 = (np.random.choice(bins2,p=prob_norm2))
+                ##optional, to know the probability of the sampled energy
+                index2 = np.argmin(np.abs(bins2-sample_energy2))
+                sample_prob2 = prob_norm2[index2]
+                #inj_muon_energies=[sample_energy]
+                filename3=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_four/muon3/{flavor}_four_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename3)
+                
+                with open(filename3,'rb') as f:
+                    histogram3 = pickle.load(f)
+                bins3,prob3,function3 = get_info(histogram3)
+                print('bins:',bins3)
+                print('prob:',prob3)
+                prob_norm3 = prob3/np.sum(prob3) ##decimal cleaning
+                sample_energy3 = (np.random.choice(bins3,p=prob_norm3))
+                ##optional, to know the probability of the sampled energy
+                index3 = np.argmin(np.abs(bins3-sample_energy3))
+                sample_prob3 = prob_norm3[index3]
+                filename4=f'/data/user/zrechav/output_SelfVeto_Correlation_Tables/binning/fits/{flavor}/m_four/muon4/{flavor}_four_{depth_str}_nubin{energy_index}_zenbin{coszen_index}.pkl'
+                print(filename4)
+                
+                with open(filename4,'rb') as f:
+                    histogram4 = pickle.load(f)
+                bins4,prob4,function4 = get_info(histogram4)
+                print('bins:',bins4)
+                print('prob:',prob4)
+                prob_norm4 = prob4/np.sum(prob4) ##decimal cleaning
+                sample_energy4 = (np.random.choice(bins4,p=prob_norm4))
+                ##optional, to know the probability of the sampled energy
+                index4 = np.argmin(np.abs(bins4-sample_energy4))
+                sample_prob4 = prob_norm4[index4]                
+                
+                
+                inj_muon_energies=[sample_energy1,sample_energy2,sample_energy3,sample_energy4]
+               
+
         except Exception as e:
             print(e)
-            filename='/data/user/vbasu/SelfVetoArrays/'+flavour+'_EnergyTotalSplined_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy'
-            if os.path.exists(filename):#Use splined histogram for total energy
-                print('EnergySum used')
-                Hist2D=np.load('/data/user/vbasu/SelfVetoArrays/'+flavour+'_EnergyTotalSplined_Zen_'+str(coszen)+'_Depth_'+str(depth)+'.npy',allow_pickle=True)
-                Hist2D = np.nan_to_num(Hist2D)
-                weight_array=Hist2D[:,energy_index].T/np.sum(Hist2D[:,energy_index])
-                gridpts=np.logspace(-1,7,len(Hist2D))
-                index=(np.linspace(0,len(Hist2D)-1,len(Hist2D),dtype=int))
-                indexarray=np.arange(len(index)**2)
-                probarray=np.nan_to_num((weight_array).ravel())/np.sum(np.nan_to_num((weight_array).ravel()))
-                if not np.isnan(np.sum(probarray)):
-                    sample_indices = np.random.choice(len(probarray), 1, p=probarray)[0]
-                    weight_index=np.unravel_index(sample_indices, (len(index)))
+            print(traceback.print_exc())
+            inj_muon_energies=default_sampler(multiplicity=multiplicity)
+            energysample=False
 
-                    inj_muon_energies=[gridpts[weight_index]]
-                    energysample=True
-                else:
-                    print('nans in probarray??')
-                    inj_muon_energies=default_sampler(multiplicity=multiplicity)
-                    energysample=False
-            else:#use default energy from powerlaw
-                inj_muon_energies=default_sampler(multiplicity=multiplicity)
-                energysample=False
+            
         print('EnergySample',energysample)
         return inj_muon_energies,energysample
 

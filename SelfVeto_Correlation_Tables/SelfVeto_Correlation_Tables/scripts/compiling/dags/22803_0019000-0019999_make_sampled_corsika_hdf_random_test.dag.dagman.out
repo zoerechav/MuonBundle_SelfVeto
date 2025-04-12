@@ -1,0 +1,373 @@
+02/12/25 12:06:32 Setting maximum file descriptors to 80000.
+02/12/25 12:06:32 ******************************************************
+02/12/25 12:06:32 ** condor_scheduniv_exec.225325687.0 (CONDOR_DAGMAN) STARTING UP
+02/12/25 12:06:32 ** /usr/bin/condor_dagman
+02/12/25 12:06:32 ** SubsystemInfo: name=DAGMAN type=DAGMAN(10) class=DAEMON(1)
+02/12/25 12:06:32 ** Configuration: subsystem:DAGMAN local:<NONE> class:DAEMON
+02/12/25 12:06:32 ** $CondorVersion: 8.9.11 Dec 28 2020 BuildID: 526068 PackageID: 8.9.11-1 $
+02/12/25 12:06:32 ** $CondorPlatform: x86_64_CentOS7 $
+02/12/25 12:06:32 ** PID = 130255
+02/12/25 12:06:32 ** Log last touched time unavailable (No such file or directory)
+02/12/25 12:06:32 ******************************************************
+02/12/25 12:06:32 Using config source: /etc/condor/condor_config
+02/12/25 12:06:32 Using local config sources: 
+02/12/25 12:06:32    /etc/condor/config.d/00_logging
+02/12/25 12:06:32    /etc/condor/config.d/00_security
+02/12/25 12:06:32    /etc/condor/config.d/20_ganglia
+02/12/25 12:06:32    /etc/condor/config.d/20_master_daemons
+02/12/25 12:06:32    /etc/condor/config.d/20_schedd
+02/12/25 12:06:32    /etc/condor/config.d/20_schedd_limit_num_jobs
+02/12/25 12:06:32    /etc/condor/config.d/20_schedd_stats
+02/12/25 12:06:32    /etc/condor/config.d/20_schedd_stats_rss
+02/12/25 12:06:32    /etc/condor/config.d/20_shared_port
+02/12/25 12:06:32    /etc/condor/config.d/20_submit
+02/12/25 12:06:32    /etc/condor/config.d/21_submit_singularity
+02/12/25 12:06:32    /etc/condor/config.d/60_npx_group_requirement
+02/12/25 12:06:32    /usr/local/libexec/condor/sanctioned_users.py |
+02/12/25 12:06:32    /etc/condor/config.d/60_npx_sanctioned_queue
+02/12/25 12:06:32    /etc/condor/config.d/60_npx_submit
+02/12/25 12:06:32    /etc/condor/config.d/60_npx_submit_sane_reqs
+02/12/25 12:06:32    /etc/condor/config.d/60_npx_validate_accounting_groups
+02/12/25 12:06:32    /etc/condor/config.d/99_block_submissions_group_long
+02/12/25 12:06:32    /etc/condor/condor_config.local
+02/12/25 12:06:32 config Macros = 157, Sorted = 157, StringBytes = 8666, TablesBytes = 5844
+02/12/25 12:06:32 CLASSAD_CACHING is ENABLED
+02/12/25 12:06:32 Daemon Log is logging: D_ALWAYS D_ERROR
+02/12/25 12:06:32 DaemonCore: No command port requested.
+02/12/25 12:06:32 DAGMAN_USE_STRICT setting: 1
+02/12/25 12:06:32 DAGMAN_VERBOSITY setting: 3
+02/12/25 12:06:32 DAGMAN_DEBUG_CACHE_SIZE setting: 5242880
+02/12/25 12:06:32 DAGMAN_DEBUG_CACHE_ENABLE setting: False
+02/12/25 12:06:32 DAGMAN_SUBMIT_DELAY setting: 1
+02/12/25 12:06:32 DAGMAN_MAX_SUBMIT_ATTEMPTS setting: 6
+02/12/25 12:06:32 DAGMAN_STARTUP_CYCLE_DETECT setting: False
+02/12/25 12:06:32 DAGMAN_MAX_SUBMITS_PER_INTERVAL setting: 100
+02/12/25 12:06:32 DAGMAN_AGGRESSIVE_SUBMIT setting: False
+02/12/25 12:06:32 DAGMAN_USER_LOG_SCAN_INTERVAL setting: 5
+02/12/25 12:06:32 DAGMAN_QUEUE_UPDATE_INTERVAL setting: 300
+02/12/25 12:06:32 DAGMAN_DEFAULT_PRIORITY setting: 0
+02/12/25 12:06:32 DAGMAN_SUPPRESS_NOTIFICATION setting: True
+02/12/25 12:06:32 allow_events (DAGMAN_ALLOW_EVENTS) setting: 114
+02/12/25 12:06:32 DAGMAN_RETRY_SUBMIT_FIRST setting: True
+02/12/25 12:06:32 DAGMAN_RETRY_NODE_FIRST setting: False
+02/12/25 12:06:32 DAGMAN_MAX_JOBS_IDLE setting: 1000
+02/12/25 12:06:32 DAGMAN_MAX_JOBS_SUBMITTED setting: 0
+02/12/25 12:06:32 DAGMAN_MAX_PRE_SCRIPTS setting: 20
+02/12/25 12:06:32 DAGMAN_MAX_POST_SCRIPTS setting: 20
+02/12/25 12:06:32 DAGMAN_MAX_HOLD_SCRIPTS setting: 20
+02/12/25 12:06:32 DAGMAN_MUNGE_NODE_NAMES setting: True
+02/12/25 12:06:32 DAGMAN_PROHIBIT_MULTI_JOBS setting: False
+02/12/25 12:06:32 DAGMAN_SUBMIT_DEPTH_FIRST setting: False
+02/12/25 12:06:32 DAGMAN_ALWAYS_RUN_POST setting: False
+02/12/25 12:06:32 DAGMAN_CONDOR_SUBMIT_EXE setting: /usr/bin/condor_submit
+02/12/25 12:06:32 DAGMAN_USE_CONDOR_SUBMIT setting: True
+02/12/25 12:06:32 DAGMAN_ABORT_DUPLICATES setting: True
+02/12/25 12:06:32 DAGMAN_ABORT_ON_SCARY_SUBMIT setting: True
+02/12/25 12:06:32 DAGMAN_PENDING_REPORT_INTERVAL setting: 600
+02/12/25 12:06:32 DAGMAN_AUTO_RESCUE setting: True
+02/12/25 12:06:32 DAGMAN_MAX_RESCUE_NUM setting: 100
+02/12/25 12:06:32 DAGMAN_WRITE_PARTIAL_RESCUE setting: True
+02/12/25 12:06:32 DAGMAN_DEFAULT_NODE_LOG setting: @(DAG_DIR)/@(DAG_FILE).nodes.log
+02/12/25 12:06:32 DAGMAN_GENERATE_SUBDAG_SUBMITS setting: True
+02/12/25 12:06:32 DAGMAN_MAX_JOB_HOLDS setting: 100
+02/12/25 12:06:32 DAGMAN_HOLD_CLAIM_TIME setting: 20
+02/12/25 12:06:32 ALL_DEBUG setting: 
+02/12/25 12:06:32 DAGMAN_DEBUG setting: 
+02/12/25 12:06:32 DAGMAN_SUPPRESS_JOB_LOGS setting: False
+02/12/25 12:06:32 DAGMAN_REMOVE_NODE_JOBS setting: True
+02/12/25 12:06:32 DAGMAN will adjust edges after parsing
+02/12/25 12:06:32 argv[0] == "condor_scheduniv_exec.225325687.0"
+02/12/25 12:06:32 argv[1] == "-Lockfile"
+02/12/25 12:06:32 argv[2] == "22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.lock"
+02/12/25 12:06:32 argv[3] == "-AutoRescue"
+02/12/25 12:06:32 argv[4] == "1"
+02/12/25 12:06:32 argv[5] == "-DoRescueFrom"
+02/12/25 12:06:32 argv[6] == "0"
+02/12/25 12:06:32 argv[7] == "-Dag"
+02/12/25 12:06:32 argv[8] == "22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag"
+02/12/25 12:06:32 argv[9] == "-Suppress_notification"
+02/12/25 12:06:32 argv[10] == "-CsdVersion"
+02/12/25 12:06:32 argv[11] == "$CondorVersion: 8.9.11 Dec 28 2020 BuildID: 526068 PackageID: 8.9.11-1 $"
+02/12/25 12:06:32 argv[12] == "-Dagman"
+02/12/25 12:06:32 argv[13] == "/usr/bin/condor_dagman"
+02/12/25 12:06:32 Can't open directory "/etc/condor/passwords.d" as PRIV_ROOT, errno: 13 (Permission denied)
+02/12/25 12:06:32 Can't open directory "/etc/condor/passwords.d" as PRIV_ROOT, errno: 13 (Permission denied)
+02/12/25 12:06:32 Workflow batch-id: <225325687.0>
+02/12/25 12:06:32 Workflow batch-name: <22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag+225325687>
+02/12/25 12:06:32 Workflow accounting_group: <>
+02/12/25 12:06:32 Workflow accounting_group_user: <>
+02/12/25 12:06:32 Warning: failed to get attribute DAGNodeName
+02/12/25 12:06:32 DAGMAN_LOG_ON_NFS_IS_ERROR setting: False
+02/12/25 12:06:32 Default node log file is: </home/zrechav/SelfVeto_Correlation_Tables/scripts/compiling/dags/./22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.nodes.log>
+02/12/25 12:06:32 DAG Lockfile will be written to 22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.lock
+02/12/25 12:06:32 DAG Input file is 22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag
+02/12/25 12:06:32 Parsing 1 dagfiles
+02/12/25 12:06:32 Parsing 22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag ...
+02/12/25 12:06:32 Adjusting edges
+02/12/25 12:06:32 Dag contains 1 total jobs
+02/12/25 12:06:32 Bootstrapping...
+02/12/25 12:06:32 Number of pre-completed nodes: 0
+02/12/25 12:06:32 MultiLogFiles: truncating log file /home/zrechav/SelfVeto_Correlation_Tables/scripts/compiling/dags/./22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.nodes.log
+02/12/25 12:06:32 DAG status: 0 (DAG_STATUS_OK)
+02/12/25 12:06:32 Of 1 nodes total:
+02/12/25 12:06:32  Done     Pre   Queued    Post   Ready   Un-Ready   Failed
+02/12/25 12:06:32   ===     ===      ===     ===     ===        ===      ===
+02/12/25 12:06:32     0       0        0       0       1          0        0
+02/12/25 12:06:32 0 job proc(s) currently held
+02/12/25 12:06:32 DAGMan Runtime Statistics: [ EventCycleTimeCount = 0.0; EventCycleTimeSum = 0.0; LogProcessCycleTimeCount = 0.0; LogProcessCycleTimeSum = 0.0; SleepCycleTimeCount = 0.0; SleepCycleTimeSum = 0.0; SubmitCycleTimeCount = 0.0; SubmitCycleTimeSum = 0.0; ]
+02/12/25 12:06:32 Registering condor_event_timer...
+02/12/25 12:06:33 Sleeping for 1 s (DAGMAN_SUBMIT_DELAY) to throttle submissions...
+02/12/25 12:06:34 Submitting HTCondor Node make_sampled_corsika_hdf job(s)...
+02/12/25 12:06:34 Adding a DAGMan workflow log /home/zrechav/SelfVeto_Correlation_Tables/scripts/compiling/dags/./22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.nodes.log
+02/12/25 12:06:34 Masking the events recorded in the DAGMAN workflow log
+02/12/25 12:06:34 Mask for workflow log is 0,1,2,4,5,7,9,10,11,12,13,16,17,24,27,35,36
+02/12/25 12:06:34 submitting: /usr/bin/condor_submit -a dag_node_name' '=' 'make_sampled_corsika_hdf -a +DAGManJobId' '=' '225325687 -a DAGManJobId' '=' '225325687 -batch-name 22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag+225325687 -batch-id 225325687.0 -a submit_event_notes' '=' 'DAG' 'Node:' 'make_sampled_corsika_hdf -a dagman_log' '=' '/home/zrechav/SelfVeto_Correlation_Tables/scripts/compiling/dags/./22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.nodes.log -a +DAGManNodesMask' '=' '"0,1,2,4,5,7,9,10,11,12,13,16,17,24,27,35,36" -a JOB=make_sampled_corsika_hdf -a infile' '=' '/data/user/zrechav/airshowered_corsika/22803/random_test/ -a outfile' '=' '/data/ana/Diffuse/DNNCascades_Diffuse/Corsika_Temp/random_test_22803_unweighted.hdf5 -a DAG_STATUS' '=' '0 -a FAILED_COUNT' '=' '0 -a notification' '=' 'never -a +DAGParentNodeNames' '=' '"" /home/zrechav/SelfVeto_Correlation_Tables/scripts/compiling/make_sampled_corsika_hdf.sub
+02/12/25 12:06:35 From submit: Submitting job(s).
+02/12/25 12:06:35 From submit: 1 job(s) submitted to cluster 225325908.
+02/12/25 12:06:35 From submit: WARNING: the line 'JOB = make_sampled_corsika_hdf' was unused by condor_submit. Is it a typo?
+02/12/25 12:06:35 	assigned HTCondor ID (225325908.0.0)
+02/12/25 12:06:35 Just submitted 1 job this cycle...
+02/12/25 12:06:35 DAG status: 0 (DAG_STATUS_OK)
+02/12/25 12:06:35 Of 1 nodes total:
+02/12/25 12:06:35  Done     Pre   Queued    Post   Ready   Un-Ready   Failed
+02/12/25 12:06:35   ===     ===      ===     ===     ===        ===      ===
+02/12/25 12:06:35     0       0        1       0       0          0        0
+02/12/25 12:06:35 0 job proc(s) currently held
+02/12/25 12:06:35 DAGMan Runtime Statistics: [ EventCycleTimeCount = 0.0; EventCycleTimeSum = 0.0; LogProcessCycleTimeCount = 0.0; LogProcessCycleTimeSum = 0.0; SleepCycleTimeCount = 0.0; SleepCycleTimeSum = 0.0; SubmitCycleTimeAvg = 1.28900408744812; SubmitCycleTimeCount = 1.0; SubmitCycleTimeMax = 1.28900408744812; SubmitCycleTimeMin = 1.28900408744812; SubmitCycleTimeStd = 1.28900408744812; SubmitCycleTimeSum = 1.28900408744812; ]
+02/12/25 12:06:40 Currently monitoring 1 HTCondor log file(s)
+02/12/25 12:06:40 Reassigning the id of job make_sampled_corsika_hdf from (225325908.0.0) to (225325908.0.0)
+02/12/25 12:06:40 Event: ULOG_SUBMIT for HTCondor Node make_sampled_corsika_hdf (225325908.0.0) {02/12/25 12:06:35}
+02/12/25 12:06:40 Number of idle job procs: 1
+02/12/25 12:16:40 600 seconds since last log event
+02/12/25 12:16:40 Pending DAG nodes:
+02/12/25 12:16:40   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 12:26:41 1201 seconds since last log event
+02/12/25 12:26:41 Pending DAG nodes:
+02/12/25 12:26:41   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 12:36:41 1801 seconds since last log event
+02/12/25 12:36:41 Pending DAG nodes:
+02/12/25 12:36:41   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 12:46:42 2402 seconds since last log event
+02/12/25 12:46:42 Pending DAG nodes:
+02/12/25 12:46:42   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 12:56:43 3003 seconds since last log event
+02/12/25 12:56:43 Pending DAG nodes:
+02/12/25 12:56:43   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 13:06:47 3607 seconds since last log event
+02/12/25 13:06:47 Pending DAG nodes:
+02/12/25 13:06:47   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 13:16:48 4208 seconds since last log event
+02/12/25 13:16:48 Pending DAG nodes:
+02/12/25 13:16:48   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 13:26:48 4808 seconds since last log event
+02/12/25 13:26:48 Pending DAG nodes:
+02/12/25 13:26:48   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 13:36:48 5408 seconds since last log event
+02/12/25 13:36:48 Pending DAG nodes:
+02/12/25 13:36:48   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 13:46:49 6009 seconds since last log event
+02/12/25 13:46:49 Pending DAG nodes:
+02/12/25 13:46:49   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 13:56:49 6609 seconds since last log event
+02/12/25 13:56:49 Pending DAG nodes:
+02/12/25 13:56:49   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 14:06:50 7210 seconds since last log event
+02/12/25 14:06:50 Pending DAG nodes:
+02/12/25 14:06:50   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 14:16:50 7810 seconds since last log event
+02/12/25 14:16:50 Pending DAG nodes:
+02/12/25 14:16:50   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 14:26:50 8410 seconds since last log event
+02/12/25 14:26:50 Pending DAG nodes:
+02/12/25 14:26:50   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 14:36:51 9011 seconds since last log event
+02/12/25 14:36:51 Pending DAG nodes:
+02/12/25 14:36:51   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 14:46:52 9612 seconds since last log event
+02/12/25 14:46:52 Pending DAG nodes:
+02/12/25 14:46:52   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 14:56:52 10212 seconds since last log event
+02/12/25 14:56:52 Pending DAG nodes:
+02/12/25 14:56:52   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 15:06:53 10813 seconds since last log event
+02/12/25 15:06:53 Pending DAG nodes:
+02/12/25 15:06:53   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 15:16:54 11414 seconds since last log event
+02/12/25 15:16:54 Pending DAG nodes:
+02/12/25 15:16:54   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 15:26:54 12014 seconds since last log event
+02/12/25 15:26:54 Pending DAG nodes:
+02/12/25 15:26:54   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 15:36:54 12614 seconds since last log event
+02/12/25 15:36:54 Pending DAG nodes:
+02/12/25 15:36:54   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 15:46:55 13215 seconds since last log event
+02/12/25 15:46:55 Pending DAG nodes:
+02/12/25 15:46:55   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 15:56:56 13816 seconds since last log event
+02/12/25 15:56:56 Pending DAG nodes:
+02/12/25 15:56:56   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 16:06:56 14416 seconds since last log event
+02/12/25 16:06:56 Pending DAG nodes:
+02/12/25 16:06:56   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 16:16:57 15017 seconds since last log event
+02/12/25 16:16:57 Pending DAG nodes:
+02/12/25 16:16:57   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 16:26:58 15618 seconds since last log event
+02/12/25 16:26:58 Pending DAG nodes:
+02/12/25 16:26:58   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 16:37:00 16220 seconds since last log event
+02/12/25 16:37:00 Pending DAG nodes:
+02/12/25 16:37:00   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 16:47:01 16821 seconds since last log event
+02/12/25 16:47:01 Pending DAG nodes:
+02/12/25 16:47:01   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 16:57:02 17422 seconds since last log event
+02/12/25 16:57:02 Pending DAG nodes:
+02/12/25 16:57:02   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 17:07:03 18023 seconds since last log event
+02/12/25 17:07:03 Pending DAG nodes:
+02/12/25 17:07:03   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 17:17:03 18623 seconds since last log event
+02/12/25 17:17:03 Pending DAG nodes:
+02/12/25 17:17:03   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 17:27:04 19224 seconds since last log event
+02/12/25 17:27:04 Pending DAG nodes:
+02/12/25 17:27:04   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 17:37:04 19824 seconds since last log event
+02/12/25 17:37:04 Pending DAG nodes:
+02/12/25 17:37:04   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 17:47:05 20425 seconds since last log event
+02/12/25 17:47:05 Pending DAG nodes:
+02/12/25 17:47:05   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 17:57:06 21026 seconds since last log event
+02/12/25 17:57:06 Pending DAG nodes:
+02/12/25 17:57:06   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 18:07:06 21626 seconds since last log event
+02/12/25 18:07:06 Pending DAG nodes:
+02/12/25 18:07:06   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 18:17:06 22226 seconds since last log event
+02/12/25 18:17:06 Pending DAG nodes:
+02/12/25 18:17:06   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 18:27:07 22827 seconds since last log event
+02/12/25 18:27:07 Pending DAG nodes:
+02/12/25 18:27:07   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 18:37:07 23427 seconds since last log event
+02/12/25 18:37:07 Pending DAG nodes:
+02/12/25 18:37:07   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 18:47:08 24028 seconds since last log event
+02/12/25 18:47:08 Pending DAG nodes:
+02/12/25 18:47:08   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 18:57:09 24629 seconds since last log event
+02/12/25 18:57:09 Pending DAG nodes:
+02/12/25 18:57:09   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 19:07:09 25229 seconds since last log event
+02/12/25 19:07:09 Pending DAG nodes:
+02/12/25 19:07:09   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 19:17:10 25830 seconds since last log event
+02/12/25 19:17:10 Pending DAG nodes:
+02/12/25 19:17:10   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 19:27:11 26431 seconds since last log event
+02/12/25 19:27:11 Pending DAG nodes:
+02/12/25 19:27:11   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 19:37:11 27031 seconds since last log event
+02/12/25 19:37:11 Pending DAG nodes:
+02/12/25 19:37:11   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 19:47:12 27632 seconds since last log event
+02/12/25 19:47:12 Pending DAG nodes:
+02/12/25 19:47:12   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 19:57:14 28234 seconds since last log event
+02/12/25 19:57:14 Pending DAG nodes:
+02/12/25 19:57:14   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 20:07:15 28835 seconds since last log event
+02/12/25 20:07:15 Pending DAG nodes:
+02/12/25 20:07:15   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 20:17:15 29435 seconds since last log event
+02/12/25 20:17:15 Pending DAG nodes:
+02/12/25 20:17:15   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 20:27:15 30035 seconds since last log event
+02/12/25 20:27:15 Pending DAG nodes:
+02/12/25 20:27:15   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 20:37:16 30636 seconds since last log event
+02/12/25 20:37:16 Pending DAG nodes:
+02/12/25 20:37:16   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 20:47:16 31236 seconds since last log event
+02/12/25 20:47:16 Pending DAG nodes:
+02/12/25 20:47:16   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 20:57:17 31837 seconds since last log event
+02/12/25 20:57:17 Pending DAG nodes:
+02/12/25 20:57:17   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 21:07:18 32438 seconds since last log event
+02/12/25 21:07:18 Pending DAG nodes:
+02/12/25 21:07:18   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 21:17:18 33038 seconds since last log event
+02/12/25 21:17:18 Pending DAG nodes:
+02/12/25 21:17:18   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 21:27:19 33639 seconds since last log event
+02/12/25 21:27:19 Pending DAG nodes:
+02/12/25 21:27:19   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 21:37:19 34239 seconds since last log event
+02/12/25 21:37:19 Pending DAG nodes:
+02/12/25 21:37:19   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 21:47:19 34839 seconds since last log event
+02/12/25 21:47:19 Pending DAG nodes:
+02/12/25 21:47:19   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 21:57:20 35440 seconds since last log event
+02/12/25 21:57:20 Pending DAG nodes:
+02/12/25 21:57:20   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 22:07:21 36041 seconds since last log event
+02/12/25 22:07:21 Pending DAG nodes:
+02/12/25 22:07:21   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 22:17:25 36645 seconds since last log event
+02/12/25 22:17:25 Pending DAG nodes:
+02/12/25 22:17:25   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 22:27:27 37247 seconds since last log event
+02/12/25 22:27:27 Pending DAG nodes:
+02/12/25 22:27:27   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 22:37:28 37848 seconds since last log event
+02/12/25 22:37:28 Pending DAG nodes:
+02/12/25 22:37:28   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 22:47:29 38449 seconds since last log event
+02/12/25 22:47:29 Pending DAG nodes:
+02/12/25 22:47:29   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 22:57:29 39049 seconds since last log event
+02/12/25 22:57:29 Pending DAG nodes:
+02/12/25 22:57:29   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 23:07:30 39650 seconds since last log event
+02/12/25 23:07:30 Pending DAG nodes:
+02/12/25 23:07:30   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 23:17:31 40251 seconds since last log event
+02/12/25 23:17:31 Pending DAG nodes:
+02/12/25 23:17:31   Node make_sampled_corsika_hdf, HTCondor ID 225325908, status STATUS_SUBMITTED
+02/12/25 23:26:11 Currently monitoring 1 HTCondor log file(s)
+02/12/25 23:26:11 Event: ULOG_EXECUTE for HTCondor Node make_sampled_corsika_hdf (225325908.0.0) {02/12/25 23:26:10}
+02/12/25 23:26:11 Number of idle job procs: 0
+02/12/25 23:31:02 Currently monitoring 1 HTCondor log file(s)
+02/12/25 23:31:02 Event: ULOG_JOB_TERMINATED for HTCondor Node make_sampled_corsika_hdf (225325908.0.0) {02/12/25 23:30:58}
+02/12/25 23:31:02 Number of idle job procs: 0
+02/12/25 23:31:02 Node make_sampled_corsika_hdf job proc (225325908.0.0) completed successfully.
+02/12/25 23:31:02 Node make_sampled_corsika_hdf job completed
+02/12/25 23:31:02 DAG status: 0 (DAG_STATUS_OK)
+02/12/25 23:31:02 Of 1 nodes total:
+02/12/25 23:31:02  Done     Pre   Queued    Post   Ready   Un-Ready   Failed
+02/12/25 23:31:02   ===     ===      ===     ===     ===        ===      ===
+02/12/25 23:31:02     1       0        0       0       0          0        0
+02/12/25 23:31:02 0 job proc(s) currently held
+02/12/25 23:31:02 DAGMan Runtime Statistics: [ EventCycleTimeAvg = 0.004140130165146618; EventCycleTimeCount = 8200.0; EventCycleTimeMax = 12.28128814697266; EventCycleTimeMin = 2.002716064453125E-05; EventCycleTimeStd = 0.1649985788783238; EventCycleTimeSum = 33.94906735420227; LogProcessCycleTimeAvg = 0.0007352034250895182; LogProcessCycleTimeCount = 3.0; LogProcessCycleTimeMax = 0.001447916030883789; LogProcessCycleTimeMin = 0.0003018379211425781; LogProcessCycleTimeStd = 0.0006220127497808016; LogProcessCycleTimeSum = 0.002205610275268555; SleepCycleTimeAvg = 5.004194092517946; SleepCycleTimeCount = 8200.0; SleepCycleTimeMax = 5.069139003753662; SleepCycleTimeMin = 4.003727912902832; SleepCycleTimeStd = 0.02704023815942889; SleepCycleTimeSum = 41034.39155864716; SubmitCycleTimeAvg = 0.0002118070130522056; SubmitCycleTimeCount = 8201.0; SubmitCycleTimeMax = 1.28900408744812; SubmitCycleTimeMin = 5.960464477539062E-06; SubmitCycleTimeStd = 0.0142366338770868; SubmitCycleTimeSum = 1.737029314041138; ]
+02/12/25 23:31:02 All jobs Completed!
+02/12/25 23:31:02 Note: 0 total job deferrals because of -MaxJobs limit (0)
+02/12/25 23:31:02 Note: 0 total job deferrals because of -MaxIdle limit (1000)
+02/12/25 23:31:02 Note: 0 total job deferrals because of node category throttles
+02/12/25 23:31:02 Note: 0 total PRE script deferrals because of -MaxPre limit (20) or DEFER
+02/12/25 23:31:02 Note: 0 total POST script deferrals because of -MaxPost limit (20) or DEFER
+02/12/25 23:31:02 Note: 0 total HOLD script deferrals because of -MaxHold limit (20) or DEFER
+02/12/25 23:31:02 DAG status: 0 (DAG_STATUS_OK)
+02/12/25 23:31:02 Of 1 nodes total:
+02/12/25 23:31:02  Done     Pre   Queued    Post   Ready   Un-Ready   Failed
+02/12/25 23:31:02   ===     ===      ===     ===     ===        ===      ===
+02/12/25 23:31:02     1       0        0       0       0          0        0
+02/12/25 23:31:02 0 job proc(s) currently held
+02/12/25 23:31:02 DAGMan Runtime Statistics: [ EventCycleTimeAvg = 0.004140130165146618; EventCycleTimeCount = 8200.0; EventCycleTimeMax = 12.28128814697266; EventCycleTimeMin = 2.002716064453125E-05; EventCycleTimeStd = 0.1649985788783238; EventCycleTimeSum = 33.94906735420227; LogProcessCycleTimeAvg = 0.0007352034250895182; LogProcessCycleTimeCount = 3.0; LogProcessCycleTimeMax = 0.001447916030883789; LogProcessCycleTimeMin = 0.0003018379211425781; LogProcessCycleTimeStd = 0.0006220127497808016; LogProcessCycleTimeSum = 0.002205610275268555; SleepCycleTimeAvg = 5.004194092517946; SleepCycleTimeCount = 8200.0; SleepCycleTimeMax = 5.069139003753662; SleepCycleTimeMin = 4.003727912902832; SleepCycleTimeStd = 0.02704023815942889; SleepCycleTimeSum = 41034.39155864716; SubmitCycleTimeAvg = 0.0002118070130522056; SubmitCycleTimeCount = 8201.0; SubmitCycleTimeMax = 1.28900408744812; SubmitCycleTimeMin = 5.960464477539062E-06; SubmitCycleTimeStd = 0.0142366338770868; SubmitCycleTimeSum = 1.737029314041138; ]
+02/12/25 23:31:02 Wrote metrics file 22803_0019000-0019999_make_sampled_corsika_hdf_random_test.dag.metrics.
+02/12/25 23:31:02 DAGMan Runtime Statistics: [ EventCycleTimeAvg = 0.004140130165146618; EventCycleTimeCount = 8200.0; EventCycleTimeMax = 12.28128814697266; EventCycleTimeMin = 2.002716064453125E-05; EventCycleTimeStd = 0.1649985788783238; EventCycleTimeSum = 33.94906735420227; LogProcessCycleTimeAvg = 0.0007352034250895182; LogProcessCycleTimeCount = 3.0; LogProcessCycleTimeMax = 0.001447916030883789; LogProcessCycleTimeMin = 0.0003018379211425781; LogProcessCycleTimeStd = 0.0006220127497808016; LogProcessCycleTimeSum = 0.002205610275268555; SleepCycleTimeAvg = 5.004194092517946; SleepCycleTimeCount = 8200.0; SleepCycleTimeMax = 5.069139003753662; SleepCycleTimeMin = 4.003727912902832; SleepCycleTimeStd = 0.02704023815942889; SleepCycleTimeSum = 41034.39155864716; SubmitCycleTimeAvg = 0.0002118070130522056; SubmitCycleTimeCount = 8201.0; SubmitCycleTimeMax = 1.28900408744812; SubmitCycleTimeMin = 5.960464477539062E-06; SubmitCycleTimeStd = 0.0142366338770868; SubmitCycleTimeSum = 1.737029314041138; ]
+02/12/25 23:31:02 **** condor_scheduniv_exec.225325687.0 (condor_DAGMAN) pid 130255 EXITING WITH STATUS 0
